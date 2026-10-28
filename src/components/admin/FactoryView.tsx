@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
-import { Boxes, Download, FileCode2, Github, Globe, GraduationCap, LayoutDashboard, Megaphone, ShoppingCart, Store, Stethoscope, Users, CalendarDays, Wand2, Loader2, PackageCheck, RefreshCw, Sparkles } from 'lucide-react'
+import { Download, FileCode2, Globe, GraduationCap, LayoutDashboard, Megaphone, ShoppingCart, Users, CalendarDays, Wand2, Loader2, RefreshCw, Sparkles } from 'lucide-react'
 import { toast } from 'sonner'
 
 import { fetchJson, ApiError } from '@/lib/admin-client'
@@ -54,6 +54,7 @@ export function FactoryView() {
   const [detail, setDetail] = useState<Detail | null>(null)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [approvalNote, setApprovalNote] = useState('')
   const [form, setForm] = useState({
     appName: '', clientName: '', vertical: 'crm' as (typeof VERTICALS)[number],
     modules: ['leads', 'pipeline', 'clients', 'communications'] as string[],
@@ -85,7 +86,7 @@ export function FactoryView() {
     setBusy(true); setError(null)
     try {
       await fetchJson('/api/admin/factory/apps', { method: 'POST', body: form })
-      toast.success('Blueprint generated — review the file tree, then export or build.')
+      toast.success('Blueprint and source scaffold stored. No CI build, preview, deployment, or handover was run.')
       await loadApps()
     } catch (err) {
       const msg = err instanceof ApiError ? err.message : 'Generation failed'
@@ -93,12 +94,13 @@ export function FactoryView() {
     } finally { setBusy(false) }
   }
 
-  const act = async (action: string) => {
+  const act = async (action: string, note?: string) => {
     if (!selected) return
     setBusy(true)
     try {
-      await fetchJson(`/api/admin/factory/apps/${selected}`, { method: 'PATCH', body: { action } })
-      toast.success(`Stage updated: ${action}`)
+      await fetchJson(`/api/admin/factory/apps/${selected}`, { method: 'PATCH', body: { action, ...(note ? { note } : {}) } })
+      toast.success(`Internal status recorded: ${action}`)
+      setApprovalNote('')
       await Promise.all([loadApps(), loadDetail(selected)])
     } catch (err) {
       toast.error(err instanceof ApiError ? err.message : 'Action failed')
@@ -134,11 +136,11 @@ export function FactoryView() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="AI Software Factory"
-        description="Turn one brief into a real, reviewed client application: pages, data model, API, agents and automations — then export the source, approve, deliver and hand it over. The blueprint engine is deterministic; nothing is delivered unreviewed."
+        title="Application Blueprint Generator"
+        description="Turn a brief into a deterministic plan and stored source scaffold that can be reviewed and exported. This tool does not provision, run CI, create a preview environment, deploy, or deliver an application."
       />
 
-      <SectionCard title="Templates — one click to start (Qwen-inspired)" description="Pick a starter; the vertical + modules + notes prefill the brief below. Every template becomes a real Next.js/Prisma app — not a mock.">
+      <SectionCard title="Fixed starter presets" description="These unversioned UI presets prefill the brief. They generate a stored source scaffold/ZIP, not a provisioned, tenant-isolated, or deployed application.">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           {FACTORY_TEMPLATES.map((tpl) => (
             <button key={tpl.key} type="button" onClick={() => applyTemplate(tpl)} className="group flex flex-col rounded-xl border border-slate-800 bg-slate-900/40 p-4 text-left transition hover:-translate-y-0.5 hover:border-[#009FE3]/40 hover:bg-slate-900 hover:shadow-[0_8px_20px_rgba(6,59,143,0.12)]">
@@ -151,7 +153,7 @@ export function FactoryView() {
         </div>
       </SectionCard>
 
-      <SectionCard title="1 · Brief" description="Everything below is stored with the app so the client’s request and our blueprint always line up." id="factory-brief">
+      <SectionCard title="1 · Brief" description="The brief is stored with its blueprint record. It does not create a company tenant, deployment, or running application." id="factory-brief">
         <form onSubmit={create} className="grid gap-3 md:grid-cols-2">
           <label className="text-xs text-slate-400">Application name
             <input required value={form.appName} onChange={(e) => setForm({ ...form, appName: e.target.value })} className={cn(INPUT, 'mt-1 w-full')} placeholder="Northwind Client Hub" />
@@ -205,19 +207,19 @@ export function FactoryView() {
         </form>
       </SectionCard>
 
-      <SectionCard title="2 · Generated applications" description={`${apps.length} app${apps.length === 1 ? '' : 's'} in the factory.`}
+      <SectionCard title="2 · Blueprint records & source files" description={`${apps.length} blueprint record${apps.length === 1 ? '' : 's'} stored. Statuses below are internal records, not proof of a build or external delivery.`}
         actions={<Button variant="outline" size="sm" onClick={() => void loadApps()}><RefreshCw className="mr-1 size-3.5" />Refresh</Button>}>
         {apps.length === 0 ? (
-          <p className="text-sm text-slate-500">No applications yet. Generate the first one above.</p>
+          <p className="text-sm text-slate-500">No blueprint records yet. Generate one above.</p>
         ) : (
           <ul className="divide-y divide-slate-800">
             {apps.map((a) => (
               <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                <button type="button" onClick={() => setSelected(a.id)} className="min-w-0 text-left">
+                <button type="button" onClick={() => { setApprovalNote(''); setSelected(a.id) }} className="min-w-0 text-left">
                   <span className="block text-sm font-medium text-slate-200">{a.code} · {a.name}</span>
-                  <span className="block text-xs text-slate-500">{a.vertical} · {a.fileCount} files · {(a.totalBytes / 1024).toFixed(0)} KB · stage {a.stage}</span>
+                  <span className="block text-xs text-slate-500">{a.vertical} · {a.fileCount} stored files · {(a.totalBytes / 1024).toFixed(0)} KB · recorded stage {a.stage}</span>
                 </button>
-                <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-semibold', STATUS_TONE[a.status] ?? STATUS_TONE.DRAFT)}>{a.status}</span>
+                <span className={cn('rounded-full border px-2 py-0.5 text-[10px] font-semibold', STATUS_TONE[a.status] ?? STATUS_TONE.DRAFT)}>Recorded status: {a.status}</span>
               </li>
             ))}
           </ul>
@@ -226,20 +228,15 @@ export function FactoryView() {
 
       {detail ? (
         <>
-          <SectionCard title={`3 · ${detail.app.name}`} description={detail.plan?.summary}
+          <SectionCard title={`3 · Blueprint: ${detail.app.name}`} description={detail.plan?.summary}
             actions={
-              <div className="flex flex-wrap gap-1.5">
-                <Button variant="outline" size="sm" disabled={busy} onClick={() => void act('plan')}><RefreshCw className="mr-1 size-3.5" />Regenerate</Button>
-                <Button variant="outline" size="sm" disabled={busy} onClick={() => void act('build')}><Boxes className="mr-1 size-3.5" />Mark built</Button>
-                <Button variant="outline" size="sm" disabled={busy} onClick={() => void act('preview')}>Preview</Button>
-                <Button variant="outline" size="sm" disabled={busy} onClick={() => void act('approve')}><PackageCheck className="mr-1 size-3.5" />Approve</Button>
-                <Button variant="outline" size="sm" disabled={busy} onClick={() => void act('deliver')}>Deliver</Button>
-                <Button variant="outline" size="sm" disabled={busy} onClick={() => void act('handover')}>Handover</Button>
-                <a href={`/api/admin/factory/apps/${detail.app.id}/export`} className={cn('inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-white')} style={{ backgroundColor: GREEN }}>
-                  <Download className="size-3.5" />Export ZIP
-                </a>
-              </div>
+              <a href={`/api/admin/factory/apps/${detail.app.id}/export`} className={cn('inline-flex items-center gap-1 rounded-md px-2.5 py-1.5 text-xs font-medium text-white')} style={{ backgroundColor: GREEN }}>
+                <Download className="size-3.5" />Download source ZIP
+              </a>
             }>
+            <div className="mb-4 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs leading-relaxed text-amber-200">
+              <strong>Manual lifecycle evidence only.</strong> Existing status/history values are operator records and are not verified build, preview, delivery, or handover evidence. Those operations are not integrated here.
+            </div>
             <div className="grid gap-4 lg:grid-cols-2">
               <div>
                 <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">Pages</h3>
@@ -275,7 +272,18 @@ export function FactoryView() {
                 </ul>
               </div>
             </div>
-            <h3 className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">Stage history</h3>
+            <div className="mt-4 space-y-2 rounded-lg border border-slate-700 bg-slate-900/40 p-3">
+              <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-300">Internal review record</h3>
+              <p className="text-xs leading-relaxed text-slate-500">This admin-only note records an internal decision. It does not establish client acceptance, test success, deployment, or delivery.</p>
+              <label className="block text-xs text-slate-400">Required review note
+                <textarea rows={2} value={approvalNote} onChange={(event) => setApprovalNote(event.target.value)} className={cn(INPUT, 'mt-1 w-full')} maxLength={500} placeholder="Summarize what was reviewed and any evidence or limitations." />
+              </label>
+              <Button variant="outline" size="sm" disabled={busy || approvalNote.trim().length < 3} onClick={() => void act('approve', approvalNote.trim())}>
+                Record internal approval
+              </Button>
+            </div>
+            <h3 className="mt-4 text-xs font-semibold uppercase tracking-wide text-slate-500">Operator status history</h3>
+            <p className="mt-1 text-xs text-slate-500">Historical entries are status/audit notes; the factory does not independently verify their claims.</p>
             <ul className="mt-1 space-y-1 text-xs text-slate-400">
               {detail.events.map((e) => (
                 <li key={e.id}>{new Date(e.createdAt).toLocaleString()} · <span className="text-slate-200">{e.stage}/{e.status}</span> — {e.note} {e.actor ? <span className="text-slate-600">({e.actor})</span> : null}</li>

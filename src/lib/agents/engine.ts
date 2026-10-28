@@ -1,4 +1,3 @@
-import ZAI from 'z-ai-web-dev-sdk'
 import { completeWithFreeModels, openRouterConfigured, type ChatMessage } from './model-provider'
 import { gatewayComplete, gatewayConfigured } from '@/lib/ai-gateway/client'
 import { db } from '@/lib/db'
@@ -218,42 +217,62 @@ export async function runAgent(agentCode: string, run: AgentRunInput): Promise<A
 
   const timeoutMs = resolveAgentTimeoutMs()
   const userContent = (run.contextNote ? `${run.contextNote}\n\n` : '') + run.input
-  const messages = [
-    { role: 'system' as const, content: agent.systemPrompt },
-    { role: 'user' as const, content: userContent.slice(0, 24000) },
+  const messages: ChatMessage[] = [
+    { role: 'system', content: agent.systemPrompt },
+    { role: 'user', content: userContent.slice(0, 24000) },
   ]
   let lastError: unknown = new Error('Provider did not return a result')
-  let completion: Awaited<ReturnType<ReturnType<typeof createZaiClient>['chat']['completions']['create']>> | null = null
+  let output = ''
+  let tokensUsed = 0
+  let provider = 'unresolved'
+  let model = 'unresolved'
 
   try {
-    const userContent = (run.contextNote ? `${run.contextNote}\n\n` : '') + run.input
-    const messages: Array<{ role: 'assistant' | 'user'; content: string }> = [
-      { role: 'assistant', content: agent.systemPrompt },
-      { role: 'user', content: userContent.slice(0, 24000) },
-    ]
-    // Shared AI Gateway first when AgentOS is registered with it
-    // (opt-in via AI_GATEWAY_BASE_URL + AGENTOS_GATEWAY_TOKEN);
-    // then free models (OpenRouter, when keyed); otherwise the SDK.
-    let output: string
-    if (gatewayConfigured()) {
-      const done = await gatewayComplete(messages as ChatMessage[])
-      output = done.output
-    } else if (openRouterConfigured()) {
-      const done = await completeWithFreeModels(messages as ChatMessage[])
-      output = done.output
-    } else {
-      const zai = await getZai()
-      const completion = await zai.chat.completions.create({ messages, thinking: { type: 'disabled' } })
-      output = completion.choices[0]?.message?.content ?? ''
-    }
-    if (!output.trim()) throw new Error('Empty response from model')
+    // The configured gateway is authoritative when enabled: a gateway failure
+    // is recorded as a failure rather than silently bypassing its policy.
+    // Otherwise use the configured OpenRouter chain, then the direct ZAI adapter.
+    const maxRetries = openRouterConfigured() ? 0 : MAX_RETRY_ATTEMPTS
+    for (let attempt = 0; attempt <= maxRetries; attempt += 1) {
+      try {
+        await withTimeout(async (signal) => {
+          output = ''
+          tokensUsed = 0
+          if (gatewayConfigured()) {
+            const result = await gatewayComplete(messages, process.env, signal)
+            output = result.output
+            provider = result.provider
+            model = result.model
+            return
+          }
+          if (openRouterConfigured()) {
+            const result = await completeWithFreeModels(messages, process.env, signal)
+            output = result.output
+            provider = 'openrouter'
+            model = result.model
+            return
+          }
 
-    const output = completion?.choices[0]?.message?.content ?? ''
-    if (!output.trim()) throw new ZaiProviderError('INVALID_PROVIDER_RESPONSE', 'Provider returned empty output')
+          provider = 'zai'
+          model = process.env.ZAI_MODEL?.trim() || 'glm-4.6'
+          const zai = createZaiClient()
+          const completion = await zai.chat.completions.create(
+            { model, messages, thinking: { type: 'disabled' } } as never,
+            { signal },
+          )
+          output = completion.choices[0]?.message?.content ?? ''
+          tokensUsed = typeof completion.usage?.total_tokens === 'number' ? completion.usage.total_tokens : 0
+        }, timeoutMs)
+        if (!output.trim()) throw new ZaiProviderError('INVALID_PROVIDER_RESPONSE', 'Provider returned empty output')
+        break
+      } catch (error) {
+        lastError = error
+        if (attempt >= maxRetries || !isTransientRunError(error)) throw error
+      }
+    }
+
     const json = run.expectJson ? extractJson(output) : null
     if (run.expectJson && !json) throw new ZaiProviderError('INVALID_PROVIDER_RESPONSE', 'Provider output was not valid JSON')
     const completedAt = new Date()
-    const tokensUsed = typeof completion?.usage?.total_tokens === 'number' ? completion.usage.total_tokens : 0
     const durationMs = completedAt.getTime() - startedAt.getTime()
     await db.$transaction(async (tx) => {
       await tx.aiAgentExecution.update({
@@ -261,7 +280,7 @@ export async function runAgent(agentCode: string, run: AgentRunInput): Promise<A
         data: {
           output: output.slice(0, 20000), status: 'SUCCESS', tokensUsed,
           durationMs, completedAt,
-          metadata: JSON.stringify({ provider: 'zai' }),
+          metadata: JSON.stringify({ provider, model }),
         },
       })
       await tx.aiAgent.update({
@@ -278,7 +297,7 @@ export async function runAgent(agentCode: string, run: AgentRunInput): Promise<A
           entityId: execution.id,
           clientId: run.clientId ?? null,
           projectId: run.projectId ?? null,
-          details: JSON.stringify({ correlationId, workflow: run.workflow ?? null, status: 'SUCCESS', durationMs, tokensUsed }),
+          details: JSON.stringify({ correlationId, workflow: run.workflow ?? null, status: 'SUCCESS', durationMs, tokensUsed, provider, model }),
         },
       })
     })
@@ -302,7 +321,7 @@ export async function runAgent(agentCode: string, run: AgentRunInput): Promise<A
     await db.$transaction(async (tx) => {
       await tx.aiAgentExecution.update({
         where: { id: execution.id },
-        data: { status, error: message, durationMs, completedAt, metadata: JSON.stringify({ provider: 'zai' }) },
+        data: { status, error: message, durationMs, completedAt, metadata: JSON.stringify({ provider, model }) },
       })
       await tx.aiAgent.update({
         where: { code: agentCode },

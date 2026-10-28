@@ -23,6 +23,9 @@
 
 export const AI_WORKFORCE_MIN_ROLE = 'ADMIN' as const
 
+/** Historical operator routes share the same internal-workforce boundary. */
+export const AI_OPERATOR_MIN_ROLE = AI_WORKFORCE_MIN_ROLE
+
 /** Governance actions inside the workforce stay Super Admin only. */
 export const AI_WORKFORCE_GOVERNANCE_ROLE = 'SUPER_ADMIN' as const
 

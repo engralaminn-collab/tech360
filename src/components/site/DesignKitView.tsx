@@ -73,6 +73,78 @@ function Showcase({ label, children, note }: { label: string; children: React.Re
 
 import { DiagramGallery } from './DiagramGallery'
 
+type PlaygroundTabId = 'crm' | 'inbox' | 'calendar'
+
+function PlaygroundTabs() {
+  const [tab, setTab] = useState<PlaygroundTabId>('crm')
+  const tabs: Array<{ id: PlaygroundTabId; label: string; icon: typeof Layers }> = [
+    { id: 'crm', label: 'CRM board', icon: Layers },
+    { id: 'inbox', label: 'Unified inbox', icon: MessageCircle },
+    { id: 'calendar', label: 'Calendar', icon: Calendar },
+  ]
+
+  return (
+    <div className="w-full rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:p-6" aria-label="Static component examples">
+      <div className="flex flex-wrap gap-2" role="tablist" aria-label="Component example surfaces">
+        {tabs.map(({ id, label, icon: Icon }) => (
+          <button
+            key={id}
+            id={`playground-tab-${id}`}
+            type="button"
+            role="tab"
+            aria-selected={tab === id}
+            aria-controls="playground-panel"
+            onClick={() => setTab(id)}
+            className={`inline-flex min-h-10 items-center gap-2 rounded-lg border px-3 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#009FE3] ${tab === id ? 'border-[#009FE3]/40 bg-[#009FE3]/10 text-[#063B8F]' : 'border-slate-200 text-slate-600 hover:bg-slate-50'}`}
+          >
+            <Icon className="size-4" aria-hidden="true" />{label}
+          </button>
+        ))}
+      </div>
+      <p className="mt-3 text-xs text-slate-500">Illustrative UI only — these example cards are not live business records or operational metrics.</p>
+      <div id="playground-panel" role="tabpanel" aria-labelledby={`playground-tab-${tab}`} className="mt-4 rounded-xl border border-slate-200 bg-slate-50 p-4">
+        {tab === 'crm' ? (
+          <div className="grid gap-3 sm:grid-cols-3">
+            {[
+              { title: 'New', item: 'Example enquiry · Northwind' },
+              { title: 'In progress', item: 'Example review · Contoso' },
+              { title: 'Ready for review', item: 'Example handoff · Fabrikam' },
+            ].map((column) => (
+              <section key={column.title} className="rounded-lg border border-slate-200 bg-white p-3">
+                <h3 className="text-xs font-semibold uppercase tracking-wide text-slate-500">{column.title}</h3>
+                <p className="mt-3 rounded-md border border-slate-100 bg-slate-50 p-3 text-sm text-slate-700">{column.item}</p>
+                <Badge variant="outline" className="mt-2 text-[10px]">Example only</Badge>
+              </section>
+            ))}
+          </div>
+        ) : tab === 'inbox' ? (
+          <div className="grid gap-4 md:grid-cols-[220px_1fr]">
+            <div className="space-y-2 rounded-lg border border-slate-200 bg-white p-3">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Example conversations</p>
+              <p className="rounded-md bg-[#009FE3]/10 p-2 text-sm text-[#063B8F]">Sample: product enquiry</p>
+              <p className="rounded-md p-2 text-sm text-slate-600">Sample: appointment question</p>
+            </div>
+            <div className="min-h-36 rounded-lg border border-slate-200 bg-white p-4">
+              <p className="flex items-center gap-2 text-sm font-semibold text-[#0B1F33]"><MessageCircle className="size-4 text-[#009FE3]" />Sample conversation</p>
+              <p className="mt-4 max-w-md rounded-xl bg-slate-100 p-3 text-sm text-slate-600">This is a static component preview, not a received message.</p>
+              <div className="mt-4 flex gap-2"><Input aria-label="Example reply input" placeholder="Example reply field" readOnly /><Button type="button" disabled>Send disabled in preview</Button></div>
+            </div>
+          </div>
+        ) : (
+          <div className="rounded-lg border border-slate-200 bg-white p-4">
+            <p className="flex items-center gap-2 text-sm font-semibold text-[#0B1F33]"><Calendar className="size-4 text-[#009FE3]" />Sample schedule</p>
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {['Monday · Example', 'Tuesday · Example', 'Wednesday · Example', 'Thursday · Example'].map((day) => (
+                <div key={day} className="min-h-20 rounded-lg border border-dashed border-slate-200 bg-slate-50 p-3 text-xs text-slate-500">{day}<p className="mt-2 text-slate-700">Sample event</p></div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export default function DesignKitView() {
   return (
     <main id="main-content" className="bg-[#F7FAFC] px-5 pb-20 pt-28 sm:px-8">

@@ -283,6 +283,16 @@ export function renderInvoiceDocumentHtml(inv: RenderableInvoice, currentPayment
 </html>`
 }
 
+/** Email-safe fragment based on the same escaped invoice renderer, without a nested document shell. */
+export function renderInvoiceEmailBodyHtml(inv: RenderableInvoice, currentPaymentReadinessPhrase: string): string {
+  const document = renderInvoiceDocumentHtml(inv, currentPaymentReadinessPhrase)
+  const styles = document.match(/<style>([\s\S]*?)<\/style>/i)?.[1]
+  const body = document.match(/<body>([\s\S]*?)<\/body>/i)?.[1]
+  if (!styles || !body) throw new Error('Invoice email fragment could not be rendered safely')
+  const content = body.replace(/<div class="print-hint no-print">[\s\S]*?<\/div>/i, '')
+  return `<style>${styles}</style>${content}`
+}
+
 export function renderReceiptDocumentHtml(rec: RenderableReceipt): string {
   const docTitle = `Official Payment Receipt · ${escapeHtml(rec.receiptNumber)}`
   return `<!DOCTYPE html>
