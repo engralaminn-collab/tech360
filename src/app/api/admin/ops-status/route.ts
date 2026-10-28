@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { guard, isResponse } from '@/lib/api-guard'
-import { AI_WORKFORCE_MIN_ROLE } from '@/lib/ai-workforce-policy'
+import { AI_WORKFORCE_GOVERNANCE_ROLE } from '@/lib/ai-workforce-policy'
 import { getZaiProviderStatus } from '@/lib/ai-provider'
 import { getRegistryStatus } from '@/lib/agents/bootstrap'
 
@@ -11,7 +11,7 @@ export const dynamic = 'force-dynamic'
 // loop + agent workforce execution evidence. All numbers are real queries;
 // if the loop is down this endpoint says so honestly.
 export async function GET(req: NextRequest) {
-  const g = await guard(req, { minRole: AI_WORKFORCE_MIN_ROLE })
+  const g = await guard(req, { minRole: AI_WORKFORCE_GOVERNANCE_ROLE })
   if (isResponse(g)) return g
 
   const [heartbeatSetting, lastCycles, agentAgg, exec24h, notificationAgg, registry, agentJobGroups, recentAgentJobs] = await Promise.all([

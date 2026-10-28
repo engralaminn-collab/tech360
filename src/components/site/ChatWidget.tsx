@@ -393,6 +393,8 @@ export default function ChatWidget() {
       if (data.ai) {
         setAiStatus(data.ai.available ? 'ready' : 'unavailable')
         if (!data.ai.available) setAiError(data.ai.detail)
+      } else {
+        setAiStatus('unknown')
       }
       if (data.identityReviewRequired && data.notice) {
         setAiError(data.notice)
@@ -411,6 +413,7 @@ export default function ChatWidget() {
       setSubject('')
       requestAnimationFrame(() => composerRef.current?.focus())
     } catch (error) {
+      setAiStatus('unknown')
       setSessionError(error instanceof Error ? error.message : 'Could not start the chat. Please try again.')
       setConnIssue(true)
     } finally {
@@ -539,7 +542,13 @@ export default function ChatWidget() {
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-semibold leading-tight">TECH360 Support</p>
                 <p className="mt-0.5 text-[11px] leading-tight text-white/85">
-                  We reply fast — and a specialist joins when needed
+                  {aiStatus === 'checking'
+                    ? 'AI assistant status is checked when you start the chat.'
+                    : aiStatus === 'ready'
+                      ? 'AI assistant ready · a specialist can join when needed.'
+                      : aiStatus === 'unavailable'
+                        ? 'AI assistant unavailable · your enquiry can still reach our team.'
+                        : 'AI assistant status is unknown · a specialist can follow up.'}
                 </p>
               </div>
               <button

@@ -67,6 +67,7 @@ describe('AI workforce: every protected route requires ADMIN or SUPER_ADMIN', ()
       for (const g of guards) {
         const declaresPolicy =
           g.includes('AI_WORKFORCE_MIN_ROLE') ||
+          g.includes('AI_OPERATOR_MIN_ROLE') ||
           g.includes('AI_WORKFORCE_GOVERNANCE_ROLE') ||
           g.includes("minRole: 'SUPER_ADMIN'")
         assert.ok(

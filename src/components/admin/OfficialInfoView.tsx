@@ -1,6 +1,6 @@
 'use client'
 
-import { Crown, Download, ExternalLink, FileText, Mail, MapPin, MessageCircle, Phone, Printer, ShieldCheck, UserCog } from 'lucide-react'
+import { Crown, Download, ExternalLink, FileText, Mail, MapPin, Phone, Printer, ShieldCheck, UserCog, type LucideIcon } from 'lucide-react'
 
 import { ADMIN_ROLES, OFFICIAL_INFO } from '@/lib/constants'
 import { Button } from '@/components/ui/button'
@@ -12,13 +12,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
  * the shareable PDF (OFFICIAL_INFO in src/lib/constants.ts).
  */
 export function OfficialInfoView() {
-  const contacts = [
+  const contacts: Array<{ icon: LucideIcon; label: string; value: string; href?: string }> = [
     { icon: MapPin, label: 'Registered address', value: OFFICIAL_INFO.address },
     { icon: Phone, label: 'Phone (official pad)', value: OFFICIAL_INFO.padPhone },
     { icon: Phone, label: 'Phone (platform)', value: OFFICIAL_INFO.phone },
     { icon: Mail, label: 'Email (official pad)', value: OFFICIAL_INFO.padEmail },
-    { icon: Mail, label: 'Email (platform)', value: OFFICIAL_INFO.email },
-    { icon: MessageCircle, label: 'WhatsApp', value: OFFICIAL_INFO.whatsapp, href: OFFICIAL_INFO.whatsappUrl },
+    { icon: Mail, label: 'Email (platform)', value: OFFICIAL_INFO.email, href: `mailto:${OFFICIAL_INFO.email}` },
   ]
 
   return (

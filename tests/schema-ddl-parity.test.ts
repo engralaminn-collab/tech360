@@ -268,7 +268,7 @@ describe('the schema uses only the attributes this codebase uses', () => {
   it('uses no attribute outside the allowed set', () => {
     const used = new Set<string>()
     for (const raw of schemaSrc.split('\n')) {
-      const line = raw.trim()
+      const line = raw.replace(/\s+\/\/.*$/, '').trim()
       if (!line || line.startsWith('//')) continue
       // `@@index` and `@id` are the same attribute name with a different
       // scope, so the leading '@' is stripped before the comparison.

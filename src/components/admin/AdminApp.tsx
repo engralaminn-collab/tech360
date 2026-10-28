@@ -13,6 +13,7 @@ import {
   FileText,
   FolderKanban,
   LayoutDashboard,
+  Layers,
   Loader2,
   LogOut,
   Megaphone,
@@ -71,6 +72,7 @@ import { CommunicationsView } from './CommunicationsView'
 import { ConversationsView } from './ConversationsView'
 import { ContentStudioView } from './ContentStudioView'
 import { FactoryView } from './FactoryView'
+import { SoftwareFactoryControlView } from './SoftwareFactoryControlView'
 import { FeedsView } from './FeedsView'
 import { MediaStudioView } from './MediaStudioView'
 import { TelephonyView } from './TelephonyView'
@@ -111,14 +113,15 @@ type ViewId =
   | 'dashboard' | 'ops' | 'leads' | 'clients' | 'approvals' | 'communications' | 'chat'
   | 'payments' | 'projects' | 'reviews' | 'agents' | 'command' | 'memory' | 'newsletter' | 'seo' | 'marketing' | 'marketingos'
   | 'knowledge' | 'content' | 'blog' | 'analytics' | 'logs' | 'n8n' | 'reports' | 'settings' | 'team' | 'official'
-  | 'factory' | 'media' | 'feeds' | 'telephony'
+  | 'factory' | 'factoryControl' | 'media' | 'feeds' | 'telephony'
+  | 'models' | 'skills' | 'departments' | 'tasks' | 'workflows' | 'integrations' | 'backup' | 'dcc' | 'workforce' | 'pipeline'
 
 // Minimum console role required to see (and use) each view. Mirrors the
 // server-side minRole on the backing API routes — the nav never advertises
 // a view whose data the role cannot actually load.
 const VIEW_MIN_ROLE: Record<ViewId, 'STAFF' | 'MANAGER' | 'ADMIN' | 'SUPER_ADMIN'> = {
   dashboard: 'STAFF',
-  ops: 'ADMIN',
+  ops: 'SUPER_ADMIN',
   leads: 'STAFF',
   clients: 'STAFF',
   approvals: 'MANAGER',
@@ -145,6 +148,7 @@ const VIEW_MIN_ROLE: Record<ViewId, 'STAFF' | 'MANAGER' | 'ADMIN' | 'SUPER_ADMIN
   team: 'SUPER_ADMIN',
   official: 'ADMIN',
   factory: 'ADMIN',
+  factoryControl: 'ADMIN',
   media: 'ADMIN',
   feeds: 'STAFF',
   telephony: 'STAFF',
@@ -196,6 +200,7 @@ const NAV: Array<{ section: string; items: NavItem[] }> = [
   {
     section: 'Product Factory',
     items: [
+      { id: 'factoryControl', label: 'Factory Control', icon: Layers },
       { id: 'factory', label: 'App Factory', icon: Boxes },
       { id: 'media', label: 'Media Studio', icon: Clapperboard },
     ],
@@ -282,6 +287,7 @@ const VIEW_TITLES: Record<ViewId, string> = {
   team: 'Team',
   official: 'Official Info',
   factory: 'AI Software Factory',
+  factoryControl: 'Software Factory Control Center',
   media: 'Media Studio',
   feeds: 'Feed Hub',
   telephony: 'Calls & SMS',
@@ -689,6 +695,8 @@ export default function AdminApp({ onExit }: { onExit: () => void }) {
                 <MarketingDashboardView />
               ) : view === 'knowledge' ? (
                 <KnowledgeView />
+              ) : view === 'factoryControl' ? (
+                <SoftwareFactoryControlView onOpenAppFactory={() => navigate('factory')} />
               ) : view === 'factory' ? (
                 <FactoryView />
               ) : view === 'media' ? (

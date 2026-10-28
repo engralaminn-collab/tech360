@@ -283,7 +283,7 @@ export function PaymentsView({ onOpenClient }: { onOpenClient?: (id: string) => 
       {/* INVOICES LIFECYCLE TABLE */}
       <SectionCard
         title="Invoices Lifecycle"
-        description="Drafts remain internal until issued/sent. Issued invoices are immutable — use Reissue to supersede an unpaid issued invoice."
+        description="Drafts remain internal until approved and issued. Issued invoices are immutable; create a separate replacement draft when commercial terms change."
         contentClassName="p-0"
       >
         {invoices.length === 0 ? (
@@ -394,7 +394,7 @@ export function PaymentsView({ onOpenClient }: { onOpenClient?: (id: string) => 
                           Approve
                         </Button>
                       ) : null}
-                      {st === 'APPROVED' || st === 'DRAFT' ? (
+                      {st === 'APPROVED' ? (
                         <Button
                           variant="outline"
                           size="sm"
@@ -405,7 +405,7 @@ export function PaymentsView({ onOpenClient }: { onOpenClient?: (id: string) => 
                           Issue to Portal
                         </Button>
                       ) : null}
-                      {['APPROVED', 'ISSUED', 'SENT', 'VIEWED', 'OVERDUE'].includes(st) ? (
+                      {['ISSUED', 'SENT', 'VIEWED', 'PARTIAL', 'OVERDUE'].includes(st) ? (
                         <Button
                           variant="outline"
                           size="sm"
@@ -414,17 +414,6 @@ export function PaymentsView({ onOpenClient }: { onOpenClient?: (id: string) => 
                           className="h-7 border-slate-700 bg-slate-900 px-2 text-[11px] text-slate-200"
                         >
                           Send Email
-                        </Button>
-                      ) : null}
-                      {['ISSUED', 'SENT', 'VIEWED', 'OVERDUE'].includes(st) ? (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={invBusy !== null}
-                          onClick={() => void runInvoiceAction(numStr, 'reissue', { reason: 'Revised commercial terms' })}
-                          className="h-7 border-amber-500/40 bg-amber-500/10 px-2 text-[11px] text-amber-300"
-                        >
-                          Reissue
                         </Button>
                       ) : null}
                       {['DRAFT', 'AWAITING_APPROVAL', 'APPROVED', 'ISSUED', 'SENT', 'VIEWED', 'OVERDUE'].includes(st) ? (

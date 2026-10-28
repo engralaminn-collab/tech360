@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 
 import {
@@ -37,15 +38,18 @@ import {
   canTransitionInvoiceStatus,
   computeInvoiceSettlement,
   computeInvoiceTotals,
+  invoiceGenerationResourceKey,
   computeNetProjectPaidMinor,
   evaluateReceiptEligibility,
   evaluateRefundSettlement,
   isCustomerVisibleInvoiceStatus,
+  isFinancialInvoiceStatus,
   isPayableInvoiceStatus,
 } from '../src/lib/invoice-policy'
 import {
   DOCUMENT_HTML_HEADERS,
   renderInvoiceDocumentHtml,
+  renderInvoiceEmailBodyHtml,
   renderReceiptDocumentHtml,
 } from '../src/lib/invoice-document'
 import {
@@ -426,6 +430,44 @@ describe('operating model — Create Invoice minor-unit math, lifecycle, and XSS
     assert.equal(taxNoLabel.ok, false)
   })
 
+  it('binds invoice-generation approval to the complete customer-visible document and initial status', () => {
+    const content = {
+      clientId: 'client-row-1',
+      projectId: 'project-row-1',
+      currency: 'USD',
+      subtotalMinor: 50_000,
+      discountMinor: 0,
+      discountReason: null,
+      taxRateBps: 0,
+      taxLabel: null,
+      taxMinor: 0,
+      totalMinor: 50_000,
+      lineItems: [{ description: 'Web build', quantity: 1, unitMinor: 50_000, amountMinor: 50_000 }],
+      description: 'Web build',
+      scopeVersion: 2,
+      billingName: 'Example Client',
+      billingBusiness: 'Example Co',
+      billingEmail: 'billing@example.test',
+      billingAddress: 'Dhaka',
+      billingCountry: 'BD',
+      paymentTerms: 'Pay after approval',
+      paymentMethodsSnapshot: 'Bank transfer',
+      termsVersion: 'TERMS-1',
+      customerNotes: 'Thanks',
+      dueAt: new Date('2026-11-15T00:00:00.000Z'),
+      initialStatus: 'DRAFT',
+    }
+    const key = invoiceGenerationResourceKey(content)
+    assert.equal(invoiceGenerationResourceKey({ ...content }), key, 'identical content must reuse the exact approval key')
+    assert.notEqual(invoiceGenerationResourceKey({ ...content, customerNotes: 'Changed note' }), key)
+    assert.notEqual(invoiceGenerationResourceKey({ ...content, billingAddress: 'Different address' }), key)
+    assert.notEqual(invoiceGenerationResourceKey({ ...content, paymentTerms: 'Pay in advance' }), key)
+    assert.notEqual(invoiceGenerationResourceKey({ ...content, paymentMethodsSnapshot: 'Card' }), key)
+    assert.notEqual(invoiceGenerationResourceKey({ ...content, dueAt: new Date('2026-11-16T00:00:00.000Z') }), key)
+    assert.notEqual(invoiceGenerationResourceKey({ ...content, initialStatus: 'AWAITING_APPROVAL' }), key)
+    assert.notEqual(invoiceGenerationResourceKey({ ...content, lineItems: [{ ...content.lineItems[0], amountMinor: 49_000 }] }), key)
+  })
+
   it('enforces invoice state transitions, immutability after approval/issuance, and portal visibility gates', () => {
     assert.equal(canTransitionInvoiceStatus('DRAFT', 'AWAITING_APPROVAL'), true)
     assert.equal(canTransitionInvoiceStatus('AWAITING_APPROVAL', 'APPROVED'), true)
@@ -444,6 +486,13 @@ describe('operating model — Create Invoice minor-unit math, lifecycle, and XSS
     for (const hidden of ['DRAFT', 'AWAITING_APPROVAL', 'APPROVED']) {
       assert.equal(isCustomerVisibleInvoiceStatus(hidden), false)
       assert.equal(isPayableInvoiceStatus(hidden), false)
+      assert.equal(isFinancialInvoiceStatus(hidden), false)
+    }
+    for (const nonFinancial of ['VOID', 'CANCELLED', 'DISPUTED', 'REFUND_PENDING', 'REFUNDED']) {
+      assert.equal(isFinancialInvoiceStatus(nonFinancial), false)
+    }
+    for (const financial of ['ISSUED', 'SENT', 'VIEWED', 'PARTIAL', 'PAID', 'OVERDUE']) {
+      assert.equal(isFinancialInvoiceStatus(financial), true)
     }
     for (const payable of ['ISSUED', 'SENT', 'VIEWED', 'PARTIAL', 'OVERDUE']) {
       assert.equal(isCustomerVisibleInvoiceStatus(payable), true)
@@ -453,11 +502,21 @@ describe('operating model — Create Invoice minor-unit math, lifecycle, and XSS
     assert.equal(isPayableInvoiceStatus('VOID'), false)
   })
 
+  it('compare-and-sets provider-accepted invoice status with its lifecycle audit in one transaction', () => {
+    const route = readFileSync('src/app/api/admin/invoices/[number]/route.ts', 'utf8')
+    const acceptedSend = route.slice(route.indexOf('const accepted ='))
+    assert.match(acceptedSend, /db\.\$transaction\(async \(tx\)/)
+    assert.match(acceptedSend, /tx\.invoice\.updateMany/)
+    assert.match(acceptedSend, /tx\.auditLog\.create/)
+    assert.match(acceptedSend, /where: \{ id: invoice\.id, status: invoice\.status \}/)
+    assert.match(acceptedSend, /invoiceStatusUpdated/)
+    assert.match(acceptedSend, /email delivery is not confirmed by the provider/)
+  })
+
   it('escapes untrusted HTML, enforces script-src none CSP, hides internalNotes, and renders honest Not Configured readiness', () => {
     assert.match(DOCUMENT_HTML_HEADERS['Content-Security-Policy'], /script-src 'none'/)
 
-    const html = renderInvoiceDocumentHtml(
-      {
+    const invoice = {
         number: 'INV-2026-0009',
         status: 'ISSUED',
         currency: 'USD',
@@ -476,15 +535,20 @@ describe('operating model — Create Invoice minor-unit math, lifecycle, and XSS
           name: '<b>Evil Corp</b>',
           email: 'billing@example.com',
         },
-      },
-      'Not Configured — Payment setup required',
-    )
+      }
+    const readiness = 'Not Configured — Payment setup required'
+    const html = renderInvoiceDocumentHtml(invoice, readiness)
+    const emailHtml = renderInvoiceEmailBodyHtml(invoice, readiness)
 
     assert.ok(!html.includes('<script>alert("xss")</script>'))
     assert.ok(!html.includes('<img src=x onerror=alert(1)>'))
     assert.ok(html.includes('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;'))
     assert.ok(!html.includes('CONFIDENTIAL_STAFF_MARGIN_NOTE_DO_NOT_LEAK'))
     assert.ok(html.includes('Not Configured — Payment setup required'))
+    assert.ok(!emailHtml.includes('<!DOCTYPE html>'), 'email content must be a fragment, not a nested HTML document')
+    assert.ok(!emailHtml.includes('<script>alert("xss")</script>'))
+    assert.ok(!emailHtml.includes('CONFIDENTIAL_STAFF_MARGIN_NOTE_DO_NOT_LEAK'))
+    assert.ok(emailHtml.includes('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;'))
   })
 })
 

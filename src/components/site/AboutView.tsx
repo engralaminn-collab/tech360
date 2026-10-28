@@ -269,16 +269,16 @@ export default function AboutView() {
             />
             <Reveal className="mt-8">
               <dl className="divide-y divide-[#E2E8F0] rounded-xl border border-[#E2E8F0] bg-[#F8FCFF]">
-                {[
+                {([
                   { term: "Legal name", detail: COMPANY.legalName },
                   { term: "Brand", detail: `${COMPANY.brand} · ${COMPANY.domain}` },
                   { term: "Missouri LLC number", detail: COMPANY.missouriLLC },
                   { term: "EIN", detail: COMPANY.ein },
                   { term: "Registered address", detail: COMPANY.address },
-                  { term: "Email", detail: COMPANY.email },
+                  { term: "Email", detail: COMPANY.email, href: `mailto:${COMPANY.email}` },
                   { term: "Contact", detail: "Live support chat — on every page" },
-                  { term: "Founded", detail: COMPANY.founded },
-                ].map((row) => (
+                  { term: "Founded", detail: String(COMPANY.founded) },
+                ] as Array<{ term: string; detail: string; href?: string }>).map((row) => (
                   <div
                     key={row.term}
                     className="flex flex-col gap-1 px-5 py-4 sm:flex-row sm:items-center sm:justify-between sm:gap-6"

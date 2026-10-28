@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
         if (alreadyProcessed) continue
       }
 
-      const phone = sanitizePhone(m.from ?? '')
+      const phone = toE164(m.from ?? '', '880')
       const name = contacts[i]?.profile?.name ?? ''
       const text = sanitizeText(m.text?.body ?? `[${m.type ?? 'media'} message]`, 4000)
       if (!phone) continue
@@ -126,6 +126,8 @@ async function handleWhatsAppReply(input: { client: { id: string; clientId: stri
       data: { anonId: `wa:${input.phone}`, visitorName: input.client.name, visitorPhone: input.phone, clientId: input.client.id, status: 'OPEN' },
     })
   }
+  const { recordInbound } = await import('@/lib/conversation-state')
+  await recordInbound(input.client.id, input.client.clientId, input.text, 'WHATSAPP', input.client.pipelineStage).catch(() => null)
   // Use chat orchestrator for contextual AI response (honest errors, one Q at a time)
   const { handleCustomerMessage } = await import('@/lib/chat-orchestrator')
   const result = await handleCustomerMessage({

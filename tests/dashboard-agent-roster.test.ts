@@ -12,7 +12,7 @@ import { join } from 'node:path'
 import { describe, it } from 'node:test'
 
 import { hasRole } from '../src/lib/access-policy'
-import { AI_WORKFORCE_MIN_ROLE } from '../src/lib/ai-workforce-policy'
+import { AI_WORKFORCE_GOVERNANCE_ROLE } from '../src/lib/ai-workforce-policy'
 
 const ROOT = join(import.meta.dirname, '..')
 const read = (p: string) => readFileSync(join(ROOT, p), 'utf8')
@@ -61,7 +61,8 @@ describe('dashboard roster: what it exposes', () => {
   })
 
   it('the ops status card stays SUPER_ADMIN only (ops-status is a SUPER_ADMIN route)', () => {
-    assert.equal(AI_WORKFORCE_MIN_ROLE, 'SUPER_ADMIN')
+    assert.equal(AI_WORKFORCE_GOVERNANCE_ROLE, 'SUPER_ADMIN')
+    assert.match(read('src/app/api/admin/ops-status/route.ts'), /minRole: AI_WORKFORCE_GOVERNANCE_ROLE/)
     assert.match(view, /\{isSuperAdmin \? <AiOpsCard loading=\{loading\} \/> : null\}/)
   })
 
