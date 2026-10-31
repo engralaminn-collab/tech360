@@ -10,6 +10,7 @@ export const IMAGES = raw as Record<string, string[]>;
 
 /** Returns the first image for a key (or undefined when the key is missing/empty). */
 export function imageFor(key: string, index = 0): string | undefined {
+  if (key === "education") return "/images/education-campus.jpg";
   const list = IMAGES[key];
   if (!list || list.length === 0) return undefined;
   return list[Math.min(Math.max(index, 0), list.length - 1)];

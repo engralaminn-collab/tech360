@@ -311,7 +311,7 @@ export default function PortalView() {
             {data.preview ? (
               <div>
                 <p className="text-sm text-slate-600">Preview v{data.preview.version} · status: <span className="font-semibold">{data.preview.status === 'SENT' ? 'provider accepted send request' : data.preview.status.toLowerCase()}</span></p>
-                <p className="mt-2 text-xs text-slate-500">Review everything before any payment decision. Approve or request changes right inside the preview.</p>
+                <p className="mt-2 text-xs text-slate-500">Review the preview and request changes according to your project agreement.</p>
                 <Button asChild className="mt-4 w-full gap-2 bg-[#009FE3] hover:bg-[#063B8F]">
                   <a href={data.preview.link} target="_blank" rel="noopener noreferrer"><Eye className="h-4 w-4" /> Open preview</a>
                 </Button>
@@ -349,8 +349,8 @@ export default function PortalView() {
             <CardContent className="py-5">
               <p className="flex items-center gap-2 text-sm font-semibold"><ShieldCheck className="h-4 w-4 text-[#4ade80]" /> Your protections</p>
               <ul className="mt-3 space-y-2 text-xs leading-relaxed text-slate-300">
-                <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#18B83A]" /> HTML preview before payment</li>
-                <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#18B83A]" /> Source code only after full payment</li>
+                <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#18B83A]" /> Review milestones as agreed</li>
+                <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#18B83A]" /> Source release subject to applicable conditions</li>
                 <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#18B83A]" /> Every action recorded against your Client ID</li>
                 <li className="flex gap-2"><CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[#18B83A]" /> Scope changes require written approval</li>
               </ul>
@@ -1176,10 +1176,10 @@ function LoginPanel({ onLoggedIn }: { onLoggedIn: () => void }) {
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#009FE3]">Client Portal</p>
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-[#0B1F33] sm:text-4xl">Your project, on the record.</h1>
-          <p className="mt-4 max-w-md leading-relaxed text-slate-600">Track your delivery stage, review your approved scope, open your HTML preview before payment, follow every message linked to your reference ID, and receive your source package after full payment verification.</p>
+          <p className="mt-4 max-w-md leading-relaxed text-slate-600">Track your delivery stage, review your approved scope, and access available project information and deliverables under your agreement.</p>
           <ul className="mt-6 space-y-3 text-sm text-slate-700">
-            <li className="flex items-center gap-2.5"><ShieldCheck className="h-4.5 w-4.5 text-[#18B83A]" /> HTML Preview Before Payment — always</li>
-            <li className="flex items-center gap-2.5"><Lock className="h-4.5 w-4.5 text-[#063B8F]" /> Source code released only after verified full payment</li>
+            <li className="flex items-center gap-2.5"><ShieldCheck className="h-4.5 w-4.5 text-[#18B83A]" /> Review milestones as agreed</li>
+            <li className="flex items-center gap-2.5"><Lock className="h-4.5 w-4.5 text-[#063B8F]" /> Source release subject to applicable conditions</li>
             <li className="flex items-center gap-2.5"><Eye className="h-4.5 w-4.5 text-[#009FE3]" /> Every status you see is the real system status</li>
           </ul>
           <p className="mt-6 text-xs text-slate-400">Don't have your reference? Email <a className="font-medium text-[#009FE3]" href={`mailto:${PUBLIC_CONTACT.email}`}>{PUBLIC_CONTACT.email}</a> or start a chat with the assistant — no phone number needed.</p>
@@ -1379,10 +1379,10 @@ function InvoicesCard({
             </table>
           </div>
           <p className="mt-3 text-xs text-slate-400">
-            Invoices appear here only after formal issuance. Source-code handover unlocks automatically once verified payments settle 100% of your contracted project value.
+            Invoices appear here after formal issuance. Source access is subject to release, payment verification and other applicable conditions.
           </p>
         </div>
-      ) : <EmptyLine text="No issued invoices yet. Invoices appear here per payment milestone once your HTML preview is approved." />}
+      ) : <EmptyLine text="No issued invoices yet. Invoices appear here when issued under your project agreement." />}
     </SectionCard>
   )
 }

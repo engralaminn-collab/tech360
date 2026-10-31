@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { SERVICES, getService } from "@/data/site";
 import { PageHero } from "./PageHero";
+import ServiceJourney from "./ServiceJourney";
 import { CtaBand } from "./CtaBand";
 import { Icon } from "./icons";
 import { AdminDashboardConcept, CrmConsoleConcept } from "./concepts";
@@ -76,6 +77,8 @@ export default function ServiceDetailView({ slug }: { slug: string }) {
         </div>
       </PageHero>
 
+      <ServiceJourney key={service.slug} slug={service.slug} />
+
       {/* Problem & solution */}
       <section aria-labelledby="problem-solution-heading" className="bg-white">
         <div className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-16 sm:px-6 lg:grid-cols-2 lg:gap-8 lg:px-8 lg:py-20">
@@ -111,9 +114,9 @@ export default function ServiceDetailView({ slug }: { slug: string }) {
         <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
           <SectionHeading
             id="features-heading"
-            eyebrow="What is included"
+            eyebrow="Potential capabilities"
             title="Key features"
-            description="Scope is confirmed in writing before work begins — these are the standards this service is built to."
+            description="These are potential capabilities for discussion. The actual features, integrations and acceptance criteria are agreed for each project."
           />
           <RevealList className="mt-10 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
             {service.features.map((feature, i) => (
@@ -217,9 +220,8 @@ export default function ServiceDetailView({ slug }: { slug: string }) {
                   Scope this service for your business
                 </h2>
                 <p className="mt-3 text-base leading-relaxed text-white/70">
-                  One message begins discovery. You receive a written scope, an
-                  HTML preview, and a milestone plan — payment only after your
-                  preview approval.
+                  Tell us about your goals. We will discuss the written scope,
+                  review process and commercial terms for your project.
                 </p>
               </div>
               <div className="flex flex-col gap-3 sm:flex-row">
@@ -267,7 +269,7 @@ export default function ServiceDetailView({ slug }: { slug: string }) {
 
       <CtaBand
         title="Prefer to talk it through first?"
-        description="WhatsApp reaches a real engineer who can scope your situation in one conversation — and the written scope still follows."
+        description="Share your goals through the project form and discuss a written scope with our team."
         primaryLabel="Use the project form"
       />
     </main>

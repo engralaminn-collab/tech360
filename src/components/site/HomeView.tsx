@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SERVICES, INDUSTRIES, CASE_STUDIES, PROCESS, STATS, TRUST_POINTS, COMPANY } from "@/data/site";
-import { imageFor } from "@/data/images";
+import { industryImage } from "@/data/industry-images";
 import { Icon } from "./icons";
 import { Reveal, RevealList, RevealItem } from "./Reveal";
 import { SectionHeading } from "./SectionHeading";
@@ -361,7 +361,7 @@ function FlagshipServices() {
   };
   const previews: Record<string, { eyebrow: string; mock: React.ReactNode }> = {
     "premium-business-websites": {
-      eyebrow: "Preview before payment",
+      eyebrow: "Project preview",
       mock: (
         <div className="rounded-lg border border-[#E2E8F0] bg-white p-3 shadow-sm">
           <div className="flex items-center gap-2 border-b border-[#E2E8F0] pb-2"><span className="size-2 rounded-full bg-red-400" /><span className="size-2 rounded-full bg-amber-400" /><span className="size-2 rounded-full bg-emerald-400" /><span className="ml-2 text-[10px] text-[#526173]">yourbrand.com — Preview</span></div>
@@ -505,20 +505,20 @@ function FlagshipServices() {
 const DIFFERENTIATORS = [
   {
     icon: "Eye",
-    title: "HTML preview before payment",
-    text: "A working, clickable preview of your solution — generated from your approved scope and delivered before any payment request. Evaluate quality with your own eyes first.",
+    title: "Review at agreed milestones",
+    text: "Review opportunities and preview milestones are agreed in the written project scope.",
     link: { label: "Delivery Policy", href: "#/legal/delivery" },
   },
   {
     icon: "FileCheck",
-    title: "Source code after full payment",
-    text: "The complete source package, documentation and every credential are handed over once final payment is verified. You own the system outright — no hostage hosting.",
+    title: "Agreed source handover",
+    text: "Source, documentation, access and handover terms are defined in the agreement for your project.",
     link: { label: "Handover Policy", href: "#/legal/source-code-handover" },
   },
   {
     icon: "ShieldCheck",
-    title: "US LLC, on-record operations",
-    text: "TECH360 LLC is a Missouri-registered company (LC014737249) with EIN registration. Every engagement, payment and approval is on the record and tied to your Client ID.",
+    title: "On-record collaboration",
+    text: "Discuss your project with our team and agree scope, responsibilities and approvals in writing.",
     link: { label: "About the company", href: "#/about" },
   },
   {
@@ -539,7 +539,7 @@ function WhyTech360() {
               id="why-heading"
               eyebrow="Why Tech360"
               title="Trust designed into the process, not promised in a pitch"
-              description="Outsourcing fails when risk sits entirely on one side. Our delivery model puts proof before payment and ownership after it — written into policy, not chat messages."
+              description="A clearly agreed scope, review process and handover help teams work together with confidence."
               align="left"
             />
             <div className="mt-8 hidden overflow-hidden rounded-xl border border-[#E2E8F0] lg:block">
@@ -605,8 +605,8 @@ function IndustriesPreview() {
               >
                 <div className="relative">
                   <ImageView
-                    src={imageFor(industry.imageKey)}
-                    alt={`${industry.title} — representative photography`}
+                    src={industryImage(industry.slug)}
+                    alt=""
                     aspect="16/10"
                     imgClassName="transition-transform duration-500 group-hover:scale-105"
                   />
@@ -646,7 +646,7 @@ function ProcessStrip() {
           id="process-heading"
           eyebrow="How delivery works"
           title="Seven phases. Two gates. Zero surprises."
-          description="Payment begins only after your preview approval — and the source code is released after final payment. Everything between is written, milestone-tracked and on the record."
+          description="We discuss scope, milestones, review and handover with you and document the terms for your engagement."
         />
         <Reveal className="mt-12">
           <ol className="grid grid-cols-1 gap-4 sm:grid-cols-3 lg:grid-cols-5">

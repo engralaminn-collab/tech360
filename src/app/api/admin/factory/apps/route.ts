@@ -1,3 +1,4 @@
+import { randomUUID } from 'node:crypto'
 import { NextRequest } from 'next/server'
 import { db } from '@/lib/db'
 import { guard, isResponse } from '@/lib/api-guard'
@@ -58,43 +59,58 @@ export async function POST(req: NextRequest) {
 
   const clientId = sanitizeText(body.clientId ?? '', 40).trim() || null
   const projectId = sanitizeText(body.projectId ?? '', 40).trim() || null
+  // A project is never attached without its owning client. GeneratedApp has
+  // no database foreign keys, so verify this before writing any source files.
+  if (projectId && !clientId) {
+    return Response.json({ error: 'A client is required when linking a project.' }, { status: 400 })
+  }
   if (clientId) {
     const client = await db.client.findFirst({ where: { id: clientId, deletedAt: null }, select: { id: true } })
     if (!client) return Response.json({ error: 'Client not found.' }, { status: 404 })
   }
+  if (projectId) {
+    const project = await db.project.findFirst({
+      where: { id: projectId, clientId: clientId!, deletedAt: null },
+      select: { id: true },
+    })
+    if (!project) return Response.json({ error: 'Project not found for this client.' }, { status: 404 })
+  }
 
-  const count = await db.generatedApp.count()
-  const code = `AF-${String(count + 1).padStart(4, '0')}`
-
-  // Tables are intentionally relation-free, so the app, its files and its first
-  // stage event are written as three explicit steps rather than a nested create.
-  const app = await db.generatedApp.create({
-    data: {
-      code,
-      name: brief.appName,
-      clientId,
-      projectId,
-      vertical: brief.vertical,
-      brief: JSON.stringify(brief),
-      plan: JSON.stringify(plan),
-      status: 'PLANNED',
-      stage: 'PLAN',
-      fileCount,
-      totalBytes,
-      createdBy: g.user.email,
-    },
-  })
-  await db.generatedAppFile.createMany({
-    data: files.map((f) => ({ appId: app.id, path: f.path, language: f.language, bytes: Buffer.byteLength(f.content, 'utf8'), content: f.content })),
-  })
-  await db.generatedAppEvent.create({
-    data: {
-      appId: app.id,
-      stage: 'PLAN',
-      status: 'PLANNED',
-      note: `Blueprint generated for ${brief.clientName}: ${plan.pages.length} pages, ${plan.models.length} models, ${plan.endpoints.length} endpoints, ${fileCount} files.`,
-      actor: g.user.email,
-    },
+  // A random identifier avoids count-based collisions during concurrent requests
+  // and never reuses an existing code when historical records are removed.
+  const code = `AF-${randomUUID()}`
+  // The schema has no relations for this archive. All three writes must still
+  // succeed together: a failed file/event write must not leave a partial app.
+  const app = await db.$transaction(async (tx) => {
+    const created = await tx.generatedApp.create({
+      data: {
+        code,
+        name: brief.appName,
+        clientId,
+        projectId,
+        vertical: brief.vertical,
+        brief: JSON.stringify(brief),
+        plan: JSON.stringify(plan),
+        status: 'PLANNED',
+        stage: 'PLAN',
+        fileCount,
+        totalBytes,
+        createdBy: g.user.email,
+      },
+    })
+    await tx.generatedAppFile.createMany({
+      data: files.map((f) => ({ appId: created.id, path: f.path, language: f.language, bytes: Buffer.byteLength(f.content, 'utf8'), content: f.content })),
+    })
+    await tx.generatedAppEvent.create({
+      data: {
+        appId: created.id,
+        stage: 'PLAN',
+        status: 'PLANNED',
+        note: `Blueprint generated for ${brief.clientName}: ${plan.pages.length} pages, ${plan.models.length} models, ${plan.endpoints.length} endpoints, ${fileCount} files.`,
+        actor: g.user.email,
+      },
+    })
+    return created
   })
 
   await audit({ actor: g.user.email, action: 'FACTORY_APP_GENERATED', userId: g.user.id, details: `${code} ${brief.appName} (${brief.vertical}) → ${fileCount} files` })

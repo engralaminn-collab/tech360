@@ -9,6 +9,7 @@ import { PageHeader, SectionCard } from './shared/cards'
 import { ACCENT, GREEN, INPUT, MONO, RED } from './shared/styles'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import type { SolutionCatalogEntry } from '@/lib/factory/solution-catalog'
 
 // AI Software Factory — one brief form in, one deliverable client application out.
 // Backed by /api/admin/factory/* (blueprint engine: src/lib/factory/blueprint.ts).
@@ -55,6 +56,9 @@ export function FactoryView() {
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [approvalNote, setApprovalNote] = useState('')
+  const [catalog, setCatalog] = useState<SolutionCatalogEntry[] | null>(null)
+  const [catalogError, setCatalogError] = useState<string | null>(null)
+  const [sector, setSector] = useState<'All' | 'Healthcare' | 'Education'>('All')
   const [form, setForm] = useState({
     appName: '', clientName: '', vertical: 'crm' as (typeof VERTICALS)[number],
     modules: ['leads', 'pipeline', 'clients', 'communications'] as string[],
@@ -79,6 +83,13 @@ export function FactoryView() {
   }, [])
 
   useEffect(() => { void loadApps() }, [loadApps])
+  useEffect(() => {
+    let active = true
+    fetchJson<{ entries: SolutionCatalogEntry[] }>('/api/admin/factory/solution-catalog')
+      .then((data) => { if (active) setCatalog(data.entries) })
+      .catch((err) => { if (active) setCatalogError(err instanceof ApiError && err.status === 403 ? 'Available to Super Admin only.' : 'Could not load the solution catalogue.') })
+    return () => { active = false }
+  }, [])
   useEffect(() => { if (selected) void loadDetail(selected) }, [selected, loadDetail])
 
   const create = async (e: React.FormEvent) => {
@@ -139,6 +150,26 @@ export function FactoryView() {
         title="Application Blueprint Generator"
         description="Turn a brief into a deterministic plan and stored source scaffold that can be reviewed and exported. This tool does not provision, run CI, create a preview environment, deploy, or deliver an application."
       />
+
+      <SectionCard title="Industry solution catalogue" description="Super Admin scope inventory · version 1.0.0. Design-only concepts, not verified or deployable products. Selecting or activating client features is not available here.">
+        {catalogError ? <p className="text-sm text-slate-400" role="status">{catalogError}</p> : catalog === null ? <p className="text-sm text-slate-400" role="status">Loading catalogue…</p> : <>
+          <label className="text-xs text-slate-400">Filter by sector
+            <select value={sector} onChange={(e) => setSector(e.target.value as typeof sector)} className={cn(INPUT, 'ml-3')}>
+              <option value="All">All sectors</option><option value="Healthcare">Healthcare</option><option value="Education">Education</option>
+            </select>
+          </label>
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {catalog.filter((item) => sector === 'All' || item.sector === sector).map((item) => (
+              <article key={item.id} className="rounded-xl border border-slate-700 bg-slate-900/60 p-4">
+                <div className="flex items-center justify-between gap-2"><p className="text-xs font-medium text-sky-300">{item.sector} · v{item.version}</p><span className="rounded-full border border-amber-500/40 px-2 py-1 text-[10px] font-semibold text-amber-300">DESIGN ONLY</span></div>
+                <h3 className="mt-3 text-sm font-semibold text-slate-100">{item.title}</h3>
+                <p className="mt-2 text-xs leading-relaxed text-slate-400">For: {item.personas.join(', ')}</p>
+                <p className="mt-2 text-xs leading-relaxed text-slate-300"><span className="text-slate-400">Proposed: </span>{item.proposedModules.join(' · ')}</p>
+              </article>
+            ))}
+          </div>
+        </>}
+      </SectionCard>
 
       <SectionCard title="Fixed starter presets" description="These unversioned UI presets prefill the brief. They generate a stored source scaffold/ZIP, not a provisioned, tenant-isolated, or deployed application.">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
