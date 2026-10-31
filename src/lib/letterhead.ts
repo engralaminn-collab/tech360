@@ -177,9 +177,10 @@ export function docDate(d = new Date()): string {
 // Passwords are NEVER printed here — login help is routing
 // only; credentials come from the seed env / Team console.
 // ------------------------------------------------------------
-export function officialInfoHtml(appOrigin = ""): string {
-  const loginUrl = `${appOrigin}/#/admin`
-  const portalUrl = `${appOrigin}/#/portal`
+export function officialInfoHtml(): string {
+  // Relative URLs avoid reflecting an untrusted request Host into HTML.
+  const loginUrl = "/#/admin"
+  const portalUrl = "/#/portal"
   const issued = docDate()
   const svcCards = PAD_SERVICES.map(
     (s) => `<div class="card" style="flex:1;min-width:200px"><h3>${s.name}</h3><p>${s.note}</p></div>`,
@@ -198,6 +199,7 @@ ${padMeta([
   { label: "Status", value: "Public" },
 ])}
 <div class="doc">
+  <div class="note"><b>Information page:</b> This is an HTML view, not a PDF generated on the official letterhead. The existing PDFs are linked below. For current details or document verification, contact us directly.</div>
   <h2>Company identity</h2>
   <div class="card">
     <h3>${PAD.legalName} — ${PAD.tagline}</h3>
@@ -216,37 +218,34 @@ ${padMeta([
   <div class="card">
     <h3>Platform contacts (in live use)</h3>
     <p><b>Website:</b> www.${PAD.domain} &nbsp;·&nbsp; <b>Email:</b> ${PAD.email} &nbsp;·&nbsp; <b>Phone:</b> +1 (816) 380-8660<br/>
-    <b>WhatsApp:</b> +880 1327-100297 (https://wa.me/8801327100297)</p>
+    <a href="/#/contact">Contact form and webchat</a></p>
   </div>
 
   <h2>What we do</h2>
   <div style="display:flex;gap:12px;flex-wrap:wrap">${svcCards}</div>
   <div class="card"><p>Websites &amp; web applications · eCommerce · Custom CRM · Client portals · Business dashboards · WhatsApp &amp; workflow automation · n8n automation · AI agent systems · API integrations · Cloud &amp; server solutions · Maintenance &amp; support.</p></div>
 
-  <h2>Console logins — Super Admin &amp; Admin</h2>
+  <h2>Platform access</h2>
   <div class="card">
     <h3>One login for both roles</h3>
     <p><b>Admin console:</b> <a href="${loginUrl}">${loginUrl || "/#/admin"}</a> &nbsp;·&nbsp; <b>Client portal:</b> <a href="${portalUrl}">${portalUrl || "/#/portal"}</a></p>
-    <p style="margin-top:8px">Sign in with your console email + password. Your <b>role</b> — assigned to your account, never chosen on the login screen — decides what you can see and do. Accounts are forced to change their seed / temporary password on first login, can enrol in two-factor authentication, lock after repeated failed attempts, and every sign-in is audit-logged.</p>
+    <p style="margin-top:8px">Access is restricted to authorized account holders. Contact the team if you need assistance.</p>
   </div>
-  <div style="display:flex;gap:12px;flex-wrap:wrap">
-    <div class="card" style="flex:1;min-width:230px"><h3>Super Admin</h3><p>Full control: team &amp; role management, settings, feature &amp; payment-gateway switches, internal operations, final approvals, official documents, audit logs.</p></div>
-    <div class="card" style="flex:1;min-width:230px"><h3>Admin</h3><p>Operations: clients, projects, content studio, delivery tools, reports, media &amp; feeds. Cannot change roles, governance switches, or gateway credentials.</p></div>
-  </div>
-  <div class="note"><b>Need access?</b> A Super Admin creates accounts in the console under <b>Team → Create user</b> (a one-time temporary password is shown once). The first Super Admin + Admin accounts are seeded from the server environment (<code>ADMIN_EMAIL</code> / <code>ADMIN_PASSWORD</code> and <code>STAFF_ADMIN_EMAIL</code> / <code>STAFF_ADMIN_PASSWORD</code>) — passwords are never printed on official documents.</div>
 
   <h2>Official documents</h2>
   <ol class="timeline">
-    <li><span>COMPANY PAD</span><p><b>Official A4 Letterhead (PDF)</b> — /official/TECH360_Official_A4_Letterhead.pdf — the owner-issued pad every document below is printed on.</p></li>
+    <li><span>COMPANY PAD</span><p><b>Official A4 Letterhead (PDF)</b> — /official/TECH360_Official_A4_Letterhead.pdf — the existing public letterhead PDF.</p></li>
     <li><span>THIS SHEET</span><p><b>Official Information Sheet</b> — /api/official-info (print to PDF) · shareable PDF: /official/TECH360-Official-Info.pdf</p></li>
-    <li><span>CLIENT DOCUMENTS</span><p>SOW / project previews, tax invoices and the handover &amp; acceptance certificate are issued on this pad from the platform, each with its own reference and issue date.</p></li>
+    <li><span>CLIENT DOCUMENTS</span><p>Client documents use an HTML letterhead design. They are not currently generated using the official letterhead PDF as a background.</p></li>
   </ol>
 
-  ${padSignatures(PAD.legalName, "Issued on the official company pad")}
+  <h2>Verify a document</h2>
+  <div class="card"><p>For authenticity or the status of a document, contact <a href="mailto:${PAD.email}">${PAD.email}</a> through the published contact channel. An automated document verification or revocation service is not currently available on this page.</p></div>
 </div>
 ${padFooter("Official information sheet — verify the latest version at www." + PAD.domain)}
 <div class="acts no-print">
   <a class="btn btn-a" href="javascript:window.print()">Print / Save as PDF</a>
+  <a class="btn btn-r" href="/official/TECH360-Official-Info.pdf">Download existing Official Info PDF</a>
   <a class="btn btn-r" href="/official/TECH360_Official_A4_Letterhead.pdf">Official Letterhead PDF</a>
   <a class="btn btn-r" href="${loginUrl}">Super Admin / Admin Login</a>
 </div>

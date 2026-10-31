@@ -170,7 +170,7 @@ export default function TechnologiesView() {
 
       <CtaBand
         title="Want this stack working for your business?"
-        description="We will recommend the right subset — or tell you honestly when something simpler serves you better. Written scope first, preview second, payment last."
+        description="We will recommend the right subset — or tell you honestly when something simpler serves you better. Scope, review and payment terms are agreed for your project."
       />
     </main>
   );

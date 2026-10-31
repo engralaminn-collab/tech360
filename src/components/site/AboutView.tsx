@@ -14,8 +14,8 @@ import { Reveal, RevealList, RevealItem } from "./Reveal";
 const PRINCIPLES = [
   {
     icon: Eye,
-    title: "Preview before payment",
-    text: "Clients should have a meaningful opportunity to review the proposed solution before making a payment commitment. Our process includes an HTML preview before payment.",
+    title: "Review at agreed milestones",
+    text: "Preview availability, review milestones and payment terms are set out in the agreement for each project.",
     link: "#/legal/delivery",
     label: "Read our Delivery Policy",
   },
@@ -56,7 +56,7 @@ const WORKING_STEPS = [
   {
     n: "03",
     title: "Review the HTML preview",
-    text: "You can evaluate the agreed preview and share feedback before proceeding to payment under our published delivery process.",
+    text: "You can review the agreed materials and share feedback at the milestones in your project agreement.",
   },
   {
     n: "04",
@@ -71,7 +71,7 @@ const WORKING_STEPS = [
   {
     n: "06",
     title: "Complete the handover",
-    text: "After the final payment is verified and the agreed release conditions are satisfied, we hand over the contracted source code, documentation and credentials.",
+    text: "We hand over the contracted source code, documentation and access when the applicable release conditions are satisfied.",
   },
   {
     n: "07",
