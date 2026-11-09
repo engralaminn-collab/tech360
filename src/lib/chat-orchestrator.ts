@@ -21,8 +21,7 @@ import { sanitizeText } from '@/lib/security'
 import { COMPANY } from '@/lib/constants'
 import { PUBLIC_CONTACT } from '@/lib/site-contact'
 import { loadDiscoveryState, saveDiscoveryState, nextQuestion, buildSummary, DISCOVERY_FIELDS, type DiscoveryFieldKey } from '@/lib/discovery'
-import { loadCommState, recordInbound, recordOutbound } from '@/lib/conversation-state'
-import { sendCommunication } from '@/lib/comms'
+import { recordInbound, recordOutbound } from '@/lib/conversation-state'
 import { screenAiReply } from '@/lib/ai-reply-guard'
 
 export type OrchestratorResult = {
@@ -141,21 +140,6 @@ export async function handleCustomerMessage(input: {
     }).catch(() => null)
   }
   const humanTakeoverActive = communicationStateUnavailable || communicationState?.humanTakeover === true
-
-  // Also persist inbound Communication row for audit
-  await db.communication
-    .create({
-      data: {
-        clientId: client.id,
-        channel: input.channel,
-        direction: 'IN',
-        sender: input.visitorName || input.visitorEmail || client.name || 'Visitor',
-        body: visitorBody,
-        status: 'RECEIVED',
-        providerMessageId: `web:${input.conversationId}:${Date.now()}`,
-      },
-    })
-    .catch(() => null)
 
   // Store visitor's answer for current discovery question if applicable
   // Heuristic: if discovery.currentQuestion exists, treat this message as answer to it
@@ -306,19 +290,23 @@ export async function handleCustomerMessage(input: {
         lastSender: escalated ? 'SYSTEM' : 'ADMIN',
       },
     })
-    // Communication log for CRM
-    await db.communication.create({
-      data: {
-        clientId: client.id,
-        channel: input.channel,
-        direction: 'OUT',
-        recipient: client.name,
-        body: outboundBody,
-        status: escalated ? 'SENT' : 'SENT', // honest: even fallback is sent (system message)
-        providerMessageId: `chat_out:${input.conversationId}:${Date.now()}`,
-        agentCode: wasAiGenerated ? 'CHAT-AI' : 'CHAT-FALLBACK',
-      },
-    })
+    // WEB messages are delivered by the persisted chat transcript itself.
+    // SMS/EMAIL/WHATSAPP adapters create the provider-facing Communication row
+    // and set its status only after the provider responds.
+    if (input.channel === 'WEB') {
+      await db.communication.create({
+        data: {
+          clientId: client.id,
+          channel: input.channel,
+          direction: 'OUT',
+          recipient: 'TECH360 Live Chat',
+          body: outboundBody,
+          status: 'SENT',
+          providerMessageId: `chat_out:${input.conversationId}:${Date.now()}`,
+          agentCode: wasAiGenerated ? 'CHAT-AI' : 'CHAT-FALLBACK',
+        },
+      })
+    }
   } catch {
     // If persistence fails, do not claim sent — return honest error
     return {
@@ -340,7 +328,9 @@ export async function handleCustomerMessage(input: {
     escalated,
     wasAiGenerated,
   })
-  await recordOutbound(client.id, client.clientId, outboundBody, input.channel, client.pipelineStage, nextAction.action, nextAction.actor, nextAction.dueDate).catch(() => null)
+  if (input.channel === 'WEB') {
+    await recordOutbound(client.id, client.clientId, outboundBody, input.channel, client.pipelineStage, nextAction.action, nextAction.actor, nextAction.dueDate).catch(() => null)
+  }
 
   // Also update discovery's currentQuestion if we just asked one
   // If reply contains a discovery question, set currentQuestion accordingly
