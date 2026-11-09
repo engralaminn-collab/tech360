@@ -122,8 +122,25 @@ export async function handleCustomerMessage(input: {
   const emailInMessage: string | null = null
   const emailCollectedThisTurn = false
 
-  // Save inbound to Communication log and state machine (never claim sent unless succeeded)
-  await recordInbound(client.id, client.clientId, visitorBody, input.channel, client.pipelineStage).catch(() => null)
+  // Persist inbound state before deciding whether automation is allowed.
+  // If the state cannot be read/written, fail closed to human review rather than
+  // risk replying while an opt-out or manual takeover flag is unavailable.
+  let communicationState: Awaited<ReturnType<typeof recordInbound>> | null = null
+  let communicationStateUnavailable = false
+  try {
+    communicationState = await recordInbound(client.id, client.clientId, visitorBody, input.channel, client.pipelineStage)
+  } catch (stateError) {
+    communicationStateUnavailable = true
+    const { logError } = await import('@/lib/security')
+    await logError({
+      source: 'CHAT_ORCHESTRATOR',
+      code: 'COMMUNICATION_STATE_UNAVAILABLE',
+      message: `Client ${client.clientId}: communication state could not be verified; automated response suppressed.`,
+      clientId: client.clientId,
+      workflow: 'CHAT_ONE_QA',
+    }).catch(() => null)
+  }
+  const humanTakeoverActive = communicationStateUnavailable || communicationState?.humanTakeover === true
 
   // Also persist inbound Communication row for audit
   await db.communication
@@ -180,16 +197,20 @@ export async function handleCustomerMessage(input: {
     await saveDiscoveryState(client.id, discovery)
   }
 
-  // Check for AI provider availability
+  // Check for AI provider availability using the same provider chain as runAgent().
   const providerStatus = getAgentRuntimeStatus()
   const aiAvailable = providerStatus.configured
 
-  // Try AI generation; if fails, provide honest fallback
+  // Try AI generation only when persisted state confirms automation is allowed.
   let aiReply: string | null = null
   let aiError: string | null = null
   let wasAiGenerated = false
 
-  if (aiAvailable) {
+  if (humanTakeoverActive) {
+    aiError = communicationStateUnavailable
+      ? 'Communication state could not be verified; automated response suppressed'
+      : 'Human takeover active; automated response suppressed'
+  } else if (aiAvailable) {
     const aiResult = await tryGenerateAiReply({
       context,
       history,
@@ -232,10 +253,15 @@ export async function handleCustomerMessage(input: {
     aiError = providerStatus.detail || 'AI provider not configured'
   }
 
-  // Build final reply: either AI output or honest fallback
+  // Build final reply: AI output, human-review acknowledgement, or honest fallback.
   let finalReply: string
   let escalated = false
-  if (aiReply) {
+  if (humanTakeoverActive) {
+    escalated = true
+    finalReply = communicationStateUnavailable
+      ? `Thank you for your message. It is saved under Client ID ${client.clientId} (current stage: ${client.pipelineStage}). Our communication controls could not be verified, so automated replies are paused and this message requires human review.`
+      : `Thank you for your message. It is saved under Client ID ${client.clientId} (current stage: ${client.pipelineStage}). A TECH360 team member has taken over this conversation, so automated replies are paused while the team reviews it.`
+  } else if (aiReply) {
     finalReply = aiReply
   } else {
     // Honest fallback — do not invent response
