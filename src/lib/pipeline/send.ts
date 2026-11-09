@@ -19,6 +19,7 @@
 
 import { db } from '@/lib/db'
 import { sendCommunication } from '@/lib/comms'
+import { recordOutbound } from '@/lib/conversation-state'
 import { audit, logError } from '@/lib/security'
 import { pipelineMessage, renderEmailBody, type PipelineMessage, type PipelineMessageStage, type PipelineVariables } from './templates'
 import {
@@ -85,6 +86,10 @@ export type PipelineSendRequest = {
    * satisfied and the message is sent.
    */
   approved?: boolean
+  /** Expected next action after an accepted delivery. */
+  nextPendingAction?: string
+  nextPendingActor?: 'CLIENT' | 'TECH360'
+  dueDate?: string | null
 }
 
 // ------------------------------------------------------------
@@ -290,6 +295,24 @@ export async function sendPipelineMessage(request: PipelineSendRequest): Promise
 
   const accepted = deliveries.filter((d) => d.ok).length
   const status = accepted === 0 ? 'NO_CHANNEL' : accepted === deliveries.length ? 'SENT' : 'PARTIAL'
+
+  // Start/update the persisted follow-up clock only for a provider-accepted
+  // pipeline delivery. A QUEUED/FAILED/NOT_CONFIGURED row is not an outbound.
+  const acceptedDelivery = deliveries.find((delivery) => delivery.ok)
+  if (acceptedDelivery) {
+    const acceptedBody = acceptedDelivery.channel === 'EMAIL' ? messages.email.body : messages.whatsapp.body
+    await recordOutbound(
+      client.id,
+      client.clientId,
+      acceptedBody,
+      acceptedDelivery.channel,
+      client.pipelineStage,
+      request.nextPendingAction,
+      request.nextPendingActor,
+      request.dueDate,
+    ).catch(() => null)
+  }
+
   return { status, gate, gateReason: reason, approvalId: null, deliveries, messages, clientId: client.clientId }
 }
 
