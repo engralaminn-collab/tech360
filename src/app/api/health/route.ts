@@ -1,5 +1,5 @@
 import { db } from '@/lib/db'
-import { getZaiProviderStatus } from '@/lib/ai-provider'
+import { getAgentRuntimeStatus } from '@/lib/agent-runtime-status'
 import { channelStatuses } from '@/lib/comms'
 import packageJson from '../../../../package.json'
 
@@ -14,7 +14,7 @@ export async function GET() {
       : 'database'
   const checks: Record<string, { status: string; detail?: string }> = {}
   // Safe provider states: CONFIGURED | NOT_CONFIGURED | MISCONFIGURED.
-  const provider = getZaiProviderStatus()
+  const provider = getAgentRuntimeStatus()
   const providerRequired = process.env.NODE_ENV === 'production'
   let databaseHealthy = false
 
