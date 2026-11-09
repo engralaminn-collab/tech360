@@ -10,7 +10,7 @@
 // ============================================================
 
 import { db } from '@/lib/db'
-import { PIPELINE_STAGES } from '@/lib/constants'
+import { createHash } from 'node:crypto'
 
 const STATE_SCOPE = 'COMM_STATE'
 function stateKey(clientRowId: string): string {
@@ -100,22 +100,30 @@ export function defaultCommState(clientRowId: string, clientId: string, stage: s
 }
 
 export async function loadCommState(clientRowId: string, clientId: string, fallbackStage?: string): Promise<CommState> {
+  // A database read failure must not be converted into a fresh default state:
+  // callers could otherwise overwrite a real opt-out/takeover state on save.
+  const row = await db.aiMemory.findFirst({
+    where: { scope: STATE_SCOPE, key: stateKey(clientRowId) },
+  })
+  if (!row) return defaultCommState(clientRowId, clientId, fallbackStage ?? 'NEW')
+
+  let parsed: CommState
   try {
-    const row = await db.aiMemory.findFirst({
-      where: { scope: STATE_SCOPE, key: stateKey(clientRowId) },
-    })
-    if (!row) return defaultCommState(clientRowId, clientId, fallbackStage ?? 'NEW')
-    const parsed = JSON.parse(row.content) as CommState
-    // Migrate missing fields
-    return {
-      ...defaultCommState(clientRowId, clientId, fallbackStage ?? 'NEW'),
-      ...parsed,
-      clientRowId,
-      clientId,
-      config: { ...DEFAULT_CONFIG, ...(parsed.config ?? {}) },
-    }
+    parsed = JSON.parse(row.content) as CommState
   } catch {
-    return defaultCommState(clientRowId, clientId, fallbackStage ?? 'NEW')
+    throw new Error('Persisted communication state is invalid JSON; operator review is required.')
+  }
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    throw new Error('Persisted communication state has an invalid shape; operator review is required.')
+  }
+
+  // Migrate missing fields while preserving the persisted flags and history.
+  return {
+    ...defaultCommState(clientRowId, clientId, fallbackStage ?? 'NEW'),
+    ...parsed,
+    clientRowId,
+    clientId,
+    config: { ...DEFAULT_CONFIG, ...(parsed.config ?? {}) },
   }
 }
 
@@ -186,6 +194,11 @@ export async function recordOutbound(
   if (nextPendingAction !== undefined) state.nextPendingAction = nextPendingAction
   if (nextPendingActor !== undefined) state.nextPendingActor = nextPendingActor
   if (dueDate !== undefined) state.dueDate = dueDate
+  // A fresh outbound starts a new reminder cycle. Old reminder counts must
+  // never suppress follow-ups for the newly sent message.
+  state.reminderCount = 0
+  state.lastReminderAt = null
+
   // Schedule follow-up windows from this outbound
   const now = new Date()
   state.firstReminderAt = new Date(now.getTime() + state.config.firstDelayHours * 3600_000).toISOString()
@@ -198,22 +211,22 @@ export async function setHumanTakeover(clientRowId: string, clientId: string, ta
   const state = await loadCommState(clientRowId, clientId)
   state.humanTakeover = takeover
   state.humanTakeoverAt = takeover ? nowISO() : null
-  // When human takes over, disable auto follow-ups
-  if (takeover) state.followUpEnabled = false
+  // Releasing a takeover restores follow-ups only when no other stop flag applies.
+  state.followUpEnabled = !takeover && !state.optedOut && !state.closed
   await saveCommState(state)
 }
 
 export async function setOptOut(clientRowId: string, clientId: string, optedOut: boolean): Promise<void> {
   const state = await loadCommState(clientRowId, clientId)
   state.optedOut = optedOut
-  if (optedOut) state.followUpEnabled = false
+  state.followUpEnabled = !optedOut && !state.humanTakeover && !state.closed
   await saveCommState(state)
 }
 
 export async function setClosed(clientRowId: string, clientId: string, closed: boolean): Promise<void> {
   const state = await loadCommState(clientRowId, clientId)
   state.closed = closed
-  if (closed) state.followUpEnabled = false
+  state.followUpEnabled = !closed && !state.optedOut && !state.humanTakeover
   await saveCommState(state)
 }
 
@@ -289,20 +302,31 @@ export function decideFollowUp(state: CommState, now: Date = new Date()): Follow
 }
 
 function isQuietHour(now: Date, config: FollowUpConfig): boolean {
-  // Simple Asia/Dhaka interpretation: get local hour via Intl
+  const parseClock = (value: string): number | null => {
+    const match = /^(?:([01]\\d|2[0-3])):([0-5]\\d)$/.exec(value)
+    return match ? Number(match[1]) * 60 + Number(match[2]) : null
+  }
+
+  const start = parseClock(config.quietHoursStart)
+  const end = parseClock(config.quietHoursEnd)
+  // Invalid quiet-hour configuration fails closed: do not send at an unknown time.
+  if (start === null || end === null || start === end) return true
+
   try {
-    const hourStr = new Intl.DateTimeFormat('en-US', { hour: '2-digit', hour12: false, timeZone: config.timezone }).format(now)
-    const hour = parseInt(hourStr, 10)
-    const startHour = parseInt(config.quietHoursStart.split(':')[0], 10)
-    const endHour = parseInt(config.quietHoursEnd.split(':')[0], 10)
-    if (startHour < endHour) {
-      return hour >= startHour && hour < endHour
-    } else {
-      // Overnight span e.g. 22:00-07:00
-      return hour >= startHour || hour < endHour
-    }
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hourCycle: 'h23',
+      timeZone: config.timezone,
+    }).formatToParts(now)
+    const hour = Number(parts.find((part) => part.type === 'hour')?.value)
+    const minute = Number(parts.find((part) => part.type === 'minute')?.value)
+    if (!Number.isFinite(hour) || !Number.isFinite(minute)) return true
+    const local = hour * 60 + minute
+    return start < end ? local >= start && local < end : local >= start || local < end
   } catch {
-    return false
+    // An invalid timezone must not silently disable the quiet-hours safeguard.
+    return true
   }
 }
 
@@ -315,11 +339,13 @@ export async function recordReminderSent(clientRowId: string, clientId: string):
 
 /** Idempotency: check if this provider event was already handled. */
 export async function isDuplicateInbound(clientRowId: string, providerEventId: string, channel: string): Promise<boolean> {
-  // Use InboundWebhookReceipt for dedup (existing table)
-  const hash = providerEventId.slice(0, 64)
+  // Match claimInboundWebhookEvent's domain-separated SHA-256 key exactly.
+  // A raw/truncated provider id is not the eventIdHash stored in this table.
+  const provider = channel.trim().toUpperCase()
+  const hash = createHash('sha256').update(provider + '\\0' + providerEventId.trim(), 'utf8').digest('hex')
   const existing = await db.inboundWebhookReceipt.findUnique({
-    where: { provider_eventIdHash: { provider: channel.toUpperCase(), eventIdHash: hash } } as never,
-  }).catch(() => null)
+    where: { provider_eventIdHash: { provider, eventIdHash: hash } },
+  })
   // Also check Communication providerMessageId
   if (existing) return true
   const comm = await db.communication.findFirst({
