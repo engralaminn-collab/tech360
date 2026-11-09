@@ -49,6 +49,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
+import type { AgentReference } from '@/lib/agents/reference-catalog'
 
 const CATEGORY_ORDER = [
   'EXECUTIVE', 'REVENUE', 'DELIVERY', 'TECHNOLOGY', 'CONTENT', 'OPERATIONS', 'GOVERNANCE', 'SUPPORT',
@@ -93,6 +94,8 @@ export function AgentsView() {
   // accounts control day-to-day automation (view + run) from here.
   const { data: meData } = useApi<MeResponse>('/api/auth/me')
   const isSuperAdmin = meData?.user?.role === 'SUPER_ADMIN'
+  const { data: referenceData, error: referenceError } = useApi<{ references: AgentReference[] }>(isSuperAdmin ? '/api/admin/agents/reference-catalog' : null)
+  const [referenceQuery, setReferenceQuery] = useState('')
   const { data: training } = useApi<TrainingResponse>('/api/admin/agents/training')
   const { data, loading, error, refresh } = useApi<AgentsResponse>('/api/admin/agents')
   const agents = data?.agents ?? []
@@ -235,6 +238,23 @@ export function AgentsView() {
           </>
         }
       />
+
+      {isSuperAdmin ? (
+        <section aria-labelledby="reference-catalog-heading" className="mb-4 rounded-xl border border-slate-800 bg-slate-900/60 p-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div><h2 id="reference-catalog-heading" className="text-base font-semibold text-slate-100">External capability references</h2><p className="mt-1 max-w-3xl text-xs leading-relaxed text-slate-400">Discovery inventory only. These are not installed, connected or executable by agents. Licence labels are preliminary; every integration requires separate review.</p></div>
+            <label className="text-xs text-slate-400">Search references<Input value={referenceQuery} maxLength={100} onChange={(event) => setReferenceQuery(event.target.value)} placeholder="e.g. code, voice, REA" className="mt-1 w-60 border-slate-700 bg-slate-950" /></label>
+          </div>
+          {referenceError ? <p role="alert" className="mt-3 text-sm text-red-400">Could not load references: {referenceError}</p> : !referenceData ? <p className="mt-3 text-sm text-slate-400">Loading references…</p> : (
+            <div className="mt-4 grid max-h-96 gap-2 overflow-y-auto sm:grid-cols-2 xl:grid-cols-3">
+              {referenceData.references.filter((item) => `${item.repository} ${item.capability}`.toLowerCase().includes(referenceQuery.trim().toLowerCase())).map((item) => (
+                <article key={item.repository} className="rounded-lg border border-slate-800 bg-slate-950 p-3"><h3 className="break-all text-sm font-medium text-slate-100">{item.repository}</h3><p className="mt-1 text-xs text-slate-400">{item.capability}</p><p className="mt-2 text-xs text-amber-300">Not integrated · licence: {item.reportedLicense} (unverified)</p></article>
+              ))}
+              {referenceData.references.filter((item) => `${item.repository} ${item.capability}`.toLowerCase().includes(referenceQuery.trim().toLowerCase())).length === 0 ? <p className="text-sm text-slate-400">No references match.</p> : null}
+            </div>
+          )}
+        </section>
+      ) : null}
 
       {error ? (
         <div role="alert" className="mb-4 rounded-lg border border-red-500/30 bg-red-500/10 p-3 text-sm text-red-400">

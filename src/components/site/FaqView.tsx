@@ -135,7 +135,7 @@ export default function FaqView() {
 
       <CtaBand
         title="Convinced? Start with a scope, not a contract"
-        description="One message about your project — written scope, HTML preview, milestone plan. Payment only after you approve what you see."
+        description="Tell us about your project and discuss scope, review milestones and commercial terms with our team."
       />
     </main>
   );

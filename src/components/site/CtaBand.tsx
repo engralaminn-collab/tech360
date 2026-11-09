@@ -8,8 +8,8 @@ import { AIAssistantLink, PrimaryLink } from "./buttons";
  * one message, two honest next steps (project form / live support chat).
  */
 export function CtaBand({
-  title = "Ready to see your project before you pay for it?",
-  description = "Send one message. You will get a written scope, an HTML preview of your solution, and a milestone plan — before any payment decision.",
+  title = "Ready to discuss your project?",
+  description = "Tell us what you need. We can discuss the scope, review milestones and commercial terms for your project.",
   primaryLabel = "Start Your Project",
   primaryHref = "#/contact",
 }: {
@@ -40,7 +40,7 @@ export function CtaBand({
           <AIAssistantLink />
         </div>
         <p className="mt-6 text-xs text-white/50">
-          Every engagement is on-record: Client ID, written scope, verified payments, full handover.
+          Scope, approvals, payment and handover terms are agreed for each engagement.
         </p>
       </div>
     </section>

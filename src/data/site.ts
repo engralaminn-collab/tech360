@@ -84,7 +84,7 @@ export const SERVICES: Service[] = [
     workflow: [
       "Discovery workshop — business goals, audience, competitors",
       "Sitemap, messaging outline and wireframes",
-      "HTML preview for your approval before payment begins",
+      "Review milestones agreed in the written scope",
       "Design refinement, build, content integration",
       "QA, SEO pass, launch and handover of credentials",
     ],
@@ -112,7 +112,7 @@ export const SERVICES: Service[] = [
     workflow: [
       "Stakeholder mapping and governance model definition",
       "Information architecture and content model design",
-      "Preview of key templates and workflows before payment",
+      "Review of key templates and workflows at agreed milestones",
       "Iterative build with milestone acceptance per department",
       "Migration, training, launch and operational handover",
     ],
@@ -547,11 +547,11 @@ export const SERVICES: Service[] = [
     problem:
       "The way your business handles quotes, bookings, production or fulfilment is different from every competitor — so off-the-shelf software either fights your process or forces you to become generic.",
     solution:
-      "We engineer custom software around the process that makes your business distinctive: requirements engineered into a scoped specification, preview before payment, milestone delivery and a full source-code handover when the project completes.",
+      "We engineer custom software around your business process, with a written scope, agreed review milestones and project-specific handover terms.",
     features: [
       "Requirements engineering into a written specification",
       "Architecture designed for your scale and integration needs",
-      "HTML preview before payment begins",
+      "Review milestones agreed in the written scope",
       "Milestone delivery with acceptance testing",
       "Full source code and credential handover",
       "Post-delivery support and maintenance options",
@@ -1185,7 +1185,7 @@ export const PROCESS: ProcessPhase[] = [
     step: "01",
     name: "Discover",
     title: "Understanding your business before proposing anything",
-    duration: "1–3 days",
+    duration: "As agreed",
     description:
       "We study your business, your customers and the outcomes you need. This phase produces a shared understanding — and an honest recommendation, including telling you when you do not need us.",
     details: [
@@ -1198,10 +1198,10 @@ export const PROCESS: ProcessPhase[] = [
   {
     step: "02",
     name: "Scope",
-    title: "A written scope that removes ambiguity permanently",
-    duration: "2–4 days",
+    title: "A written scope for shared understanding",
+    duration: "As agreed",
     description:
-      "Every deliverable, timeline, milestone and payment term is written into a Final Scope of Work. You review it, request revisions, and approve it in writing. From this moment, \"I thought it would include…\" stops being a possible conversation.",
+      "Every deliverable, timeline, milestone and payment term is written into a Final Scope of Work. You review it, request revisions, and approve it in writing. The scope provides a reference for review and approval.",
     details: [
       "Structured discovery questions and gap analysis",
       "Deliverables, timeline and milestone definition",
@@ -1216,19 +1216,19 @@ export const PROCESS: ProcessPhase[] = [
   {
     step: "03",
     name: "Preview",
-    title: "HTML preview before any payment moves",
-    duration: "2–5 days",
+    title: "Review the proposed solution",
+    duration: "As agreed",
     description:
-      "We build and send you a working, clickable HTML preview of the solution generated from your approved scope. You evaluate quality with your own eyes — and can request revisions at this stage at no cost — before any money is committed.",
+      "The scope defines whether a preview is included, when it is reviewed and how revisions are handled.",
     details: [
-      "Working preview generated from the approved scope",
+      "Preview or review materials where included in the scope",
       "Review with your team and stakeholders",
-      "Revision requests at this stage are free",
+      "Revision terms are defined in the project agreement",
       "Written approval (or revision) recorded on file",
     ],
     gate: {
       label: "Approval gate",
-      text: "Payment begins only after your preview approval. The preview and the scope document are permanent references for the whole engagement.",
+      text: "Review and approval milestones are recorded according to the project agreement.",
     },
   },
   {
@@ -1237,7 +1237,7 @@ export const PROCESS: ProcessPhase[] = [
     title: "Milestone payments, verified and receipted",
     duration: "Per milestone",
     description:
-      "Payment follows the structure in your scope — commonly 40% advance, 30% at the midpoint milestone, 30% at delivery. Every payment is recorded, verified and receipted. Project status changes only after verification — never on a screenshot.",
+      "Payment terms and milestones are defined in the project agreement. Payment verification follows the applicable process; a screenshot alone is not proof of payment.",
     details: [
       "Milestone structure as written in the approved scope",
       "Payment instructions with reference to your Client ID",
@@ -1246,7 +1246,7 @@ export const PROCESS: ProcessPhase[] = [
     ],
     gate: {
       label: "Verification gate",
-      text: "The project activates only after the first payment is verified. Final delivery and source-code release gate on full payment completion.",
+      text: "Project activation and handover follow the agreed terms and any applicable payment verification and approval gates.",
     },
   },
   {
@@ -1255,11 +1255,11 @@ export const PROCESS: ProcessPhase[] = [
     title: "Iterative build with milestone acceptance",
     duration: "Per scope timeline",
     description:
-      "Development proceeds against the approved scope in milestones — each accepted in writing before the next begins. Progress updates reach you automatically at milestone boundaries, not when someone remembers to write.",
+      "Development proceeds against the agreed scope, with milestone reviews and updates as specified in the project agreement.",
     details: [
       "Milestone-based development against the scope",
-      "Automated progress updates at each milestone",
-      "Two revision rounds within scope included",
+      "Progress updates as agreed",
+      "Revision allowances as agreed",
       "Testing against the QA checklist before each acceptance",
     ],
   },
@@ -1267,7 +1267,7 @@ export const PROCESS: ProcessPhase[] = [
     step: "06",
     name: "Deliver",
     title: "Delivery with a checklist, not a hope",
-    duration: "2–4 days",
+    duration: "As agreed",
     description:
       "Delivery is a structured event: the system goes live against the quality checklist, you confirm delivery in writing, and any final payment milestone is settled with the same verification discipline as the first.",
     details: [
@@ -1278,18 +1278,18 @@ export const PROCESS: ProcessPhase[] = [
     ],
     gate: {
       label: "Payment gate",
-      text: "Source code release happens only after full payment is verified — per the Source Code Handover Policy. Both sides are protected by the same rule.",
+      text: "Source release follows the contracted scope and applicable approval and verified payment conditions.",
     },
   },
   {
     step: "07",
     name: "Handover & Support",
     title: "Source code, credentials and a system you own",
-    duration: "1–2 days + support",
+    duration: "As agreed",
     description:
-      "After full payment, the complete source package and every credential are handed over securely. You change passwords, confirm in writing, and receive documentation any competent developer can follow. Ongoing support is available — and optional.",
+      "Agreed source, documentation and access are handed over after the applicable release conditions are met. Support is subject to the project agreement.",
     details: [
-      "Full source code and documentation package",
+      "Agreed source code and documentation",
       "Secure credential handover",
       "Password change confirmed by you in writing",
       "Optional maintenance and support agreement",
@@ -1308,16 +1308,16 @@ export interface Faq {
 
 export const FAQS: Faq[] = [
   {
-    q: "Do I really get an HTML preview before paying anything?",
-    a: "Yes. After your written scope approval, we build a working, clickable HTML preview of your solution and send it to you. You approve it or request revisions — revisions at the preview stage are free — and payment begins only after your approval. This is written into our Delivery Policy, not just promised in a chat.",
+    q: "How are previews and reviews agreed?",
+    a: "Preview availability, review milestones, revision allowances and payment terms are set out in the written agreement for your project.",
   },
   {
     q: "When do I receive the source code?",
-    a: "The complete source code, documentation and all credentials are handed over after final payment is verified. The release is gated by our Source Code Handover Policy, which protects both sides: you cannot lose the code you paid for, and we cannot deliver code that was not paid for. After handover you confirm password changes in writing, and the system is fully yours.",
+    a: "Source code, documentation, credentials and ownership depend on the agreed scope and handover terms. Any applicable payment and approval conditions must be verified before release.",
   },
   {
     q: "How do payments work? Do I pay everything upfront?",
-    a: "No upfront lump payment. Payment follows the milestone structure written in your approved scope — commonly 40% advance, 30% at a midpoint milestone and 30% at delivery. Every payment is recorded and receipted, and project status changes only after verification — never on a payment screenshot. Details are in our Payment Policy.",
+    a: "Payment amounts, timing and milestones are agreed in writing for each project. A payment screenshot alone is not proof of settlement; payments must be verified through the applicable process.",
   },
   {
     q: "What if I want changes after the scope is approved?",
@@ -1325,11 +1325,11 @@ export const FAQS: Faq[] = [
   },
   {
     q: "How many revisions do I get?",
-    a: "Two revision rounds within the approved scope are included in every engagement, as written in our Delivery Policy. Revision rounds at the preview stage — before any payment — are free. Revision requests that expand the scope become new quoted work, agreed in writing beforehand.",
+    a: "Revision allowances and any additional work are specified in the written scope. Changes outside that scope should be agreed before work begins.",
   },
   {
     q: "How long does a project take?",
-    a: "It follows from the scope, and it is written down before you commit. A focused business website typically runs two to four weeks; a platform or CRM build runs six to twelve weeks depending on integrations. The timeline in your Final Scope of Work is the reference we are accountable to — and it is only promised after discovery, never during a sales pitch.",
+    a: "The timeline depends on the agreed scope, dependencies, approvals and available resources. It should be confirmed in writing after discovery.",
   },
   {
     q: "What support do I get after delivery?",
@@ -1345,7 +1345,7 @@ export const FAQS: Faq[] = [
   },
   {
     q: "How do we start working together?",
-    a: "Send one message — through the contact form or a live chat with our team. You receive a Client ID for all future communication, we run discovery on your business, and you get a written scope and then an HTML preview before any payment decision. Starting costs you nothing but the message.",
+    a: "Contact us through the project form or chat to discuss your goals. Scope, review milestones and commercial terms are agreed for your project.",
   },
   {
     q: "What technologies do you build with?",
@@ -2078,9 +2078,9 @@ export function getLegalDoc(slug: string): LegalDoc | undefined {
 
 export const TRUST_POINTS: string[] = [
   "US-Registered LLC",
-  "HTML Preview Before Payment",
-  "Source Code After Full Payment",
-  "100% On-Record Delivery",
+  "Project-specific review milestones",
+  "Agreed source handover",
+  "Documented project scope",
 ];
 
 /* ------------------------------------------------------------------ */

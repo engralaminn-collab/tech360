@@ -1,8 +1,8 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { INDUSTRIES } from "@/data/site";
-import { imageFor } from "@/data/images";
+import { INDUSTRIES, getService } from "@/data/site";
+import { industryImage } from "@/data/industry-images";
 import { PageHero } from "./PageHero";
 import { CtaBand } from "./CtaBand";
 import { ImageView } from "./ImageView";
@@ -13,17 +13,19 @@ export default function IndustriesView() {
     <main id="main-content">
       <PageHero
         eyebrow="Industries"
-        title="Twenty industries. Sector-specific patterns, not templates."
-        description="We start from the problems your industry knows by name — then engineer the system that removes them. Select your sector to see the typical problems, our solution and an example system."
+        title="Technology shaped around your industry."
+        description="Explore the sectors we support and the services that can be tailored to each organisation. Choose an industry to see its challenges, proposed solutions and relevant services."
         breadcrumb={[{ label: "Industries" }]}
       />
 
       <section aria-labelledby="industry-grid-heading" className="bg-[#F4FAFF]">
-        <h2 id="industry-grid-heading" className="sr-only">
-         All industries
-        </h2>
+        <h2 id="industry-grid-heading" className="sr-only">All industries</h2>
         <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20 lg:px-8 lg:py-24">
-          <RevealList className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mb-9 flex flex-wrap items-end justify-between gap-4">
+            <div><p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#007da8]">Find your sector</p><h2 className="mt-3 text-2xl font-bold text-[#0B1F33] sm:text-3xl">Explore our industry focus</h2><p className="mt-2 max-w-2xl text-sm leading-relaxed text-[#526173]">Discover relevant services and illustrative workflows. Exact features and delivery are subject to an agreed scope.</p></div>
+            <p className="text-xs text-[#526173]">Imagery is AI-generated and illustrative.</p>
+          </div>
+          <RevealList className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {INDUSTRIES.map((industry) => (
               <RevealItem key={industry.slug}>
                 <a
@@ -32,8 +34,8 @@ export default function IndustriesView() {
                 >
                   <div className="relative">
                     <ImageView
-                      src={imageFor(industry.imageKey)}
-                      alt={`${industry.title} — representative photography`}
+                      src={industryImage(industry.slug)}
+                      alt=""
                       aspect="16/10"
                       imgClassName="transition-transform duration-500 group-hover:scale-105"
                     />
@@ -41,18 +43,13 @@ export default function IndustriesView() {
                       aria-hidden="true"
                       className="absolute inset-0 bg-gradient-to-t from-[#0B1F33]/55 via-transparent to-transparent"
                     />
-                    <span className="absolute bottom-3 left-4 text-sm font-semibold text-white">
-                      {industry.title}
-                    </span>
+                    <span className="absolute left-4 top-4 rounded-full border border-white/30 bg-[#0B1F33]/75 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-white">Industry focus</span>
                   </div>
-                  <div className="flex items-start justify-between gap-2 p-4">
-                    <p className="line-clamp-2 text-xs leading-relaxed text-[#526173]">
-                      {industry.description}
-                    </p>
-                    <ArrowRight
-                      className="mt-0.5 size-4 shrink-0 text-[#009FE3] transition-transform group-hover:translate-x-1"
-                      aria-hidden="true"
-                    />
+                  <div className="flex min-h-48 flex-col p-5">
+                    <h3 className="text-lg font-bold text-[#0B1F33]">{industry.title}</h3>
+                    <p className="mt-2 line-clamp-3 text-sm leading-relaxed text-[#526173]">{industry.description}</p>
+                    <p className="mt-4 text-xs leading-relaxed text-[#526173]"><span className="font-semibold text-[#0B1F33]">Services: </span>{industry.recommended.map(getService).filter((service): service is NonNullable<typeof service> => Boolean(service)).slice(0, 2).map((service) => service.title).join(' · ')}</p>
+                    <span className="mt-auto inline-flex items-center gap-2 pt-4 text-sm font-semibold text-[#0079a6]">Explore industry <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" /></span>
                   </div>
                 </a>
               </RevealItem>
@@ -73,7 +70,7 @@ export default function IndustriesView() {
 
       <CtaBand
         title="Your industry, scoped properly"
-        description="Tell us the sector and the problem you keep hitting. The written scope and HTML preview show exactly how we would solve it — before any payment."
+        description="Tell us about your organisation and priorities. We will discuss an appropriate written scope and review process for your project."
       />
     </main>
   );

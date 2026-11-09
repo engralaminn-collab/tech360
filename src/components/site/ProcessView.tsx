@@ -23,7 +23,7 @@ export default function ProcessView() {
       <PageHero
         eyebrow="Delivery process"
         title="Seven phases. Two gates. Zero surprises."
-        description="Discover → Scope → Preview → Payment → Build → Deliver → Handover & Support. Payment begins only after your preview approval; source code is released after final payment. Both rules are published policy."
+        description="Discover, agree the scope, review, build and plan handover. The order, approvals and commercial terms are set out for each engagement."
         breadcrumb={[{ label: "Process" }]}
       />
 
@@ -164,7 +164,7 @@ export default function ProcessView() {
             id="pipeline-heading"
             eyebrow="At a glance"
             title="One pipeline, two gates, clear ownership"
-            description="The highlighted stage is the promise most agencies skip: you review a working preview before any payment is due."
+            description="Review the proposed workflow and confirm the milestones and approvals appropriate to your project."
           />
           <div className="mt-10 space-y-6">
             <LeadFunnel />
@@ -241,7 +241,7 @@ export default function ProcessView() {
 
       <CtaBand
         title="See the process work on your project"
-        description="The fastest proof is experience: send one message, and watch a written scope and an HTML preview arrive before any payment request."
+        description="Share your needs and discuss a written scope, review milestones and project terms with our team."
       />
     </main>
   );

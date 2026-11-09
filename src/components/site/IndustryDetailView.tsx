@@ -4,8 +4,10 @@ import { ArrowRight, ArrowLeft, CircleAlert, CheckCircle2, Lightbulb } from "luc
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { INDUSTRIES, getIndustry, getService } from "@/data/site";
-import { imageFor } from "@/data/images";
+import { industryImage } from "@/data/industry-images";
 import { PageHero } from "./PageHero";
+import IndustryExperience from "./IndustryExperience";
+import EducationSolutions from "./EducationSolutions";
 import { CtaBand } from "./CtaBand";
 import { ImageView } from "./ImageView";
 import { Icon } from "./icons";
@@ -51,8 +53,8 @@ export default function IndustryDetailView({ slug }: { slug: string }) {
       <section className="relative overflow-hidden bg-[#0B1F33]">
         <div className="absolute inset-0">
           <ImageView
-            src={imageFor(industry.imageKey)}
-            alt={`${industry.title} — representative photography`}
+            src={industryImage(industry.slug)}
+            alt=""
             className="h-full w-full"
             imgClassName="opacity-45"
             eager
@@ -103,6 +105,9 @@ export default function IndustryDetailView({ slug }: { slug: string }) {
           </Reveal>
         </div>
       </section>
+
+      {(industry.slug === "education" || industry.slug === "schools-training") && <EducationSolutions />}
+      <IndustryExperience key={industry.slug} slug={industry.slug} />
 
       {/* Problems */}
       <section aria-labelledby="problems-heading" className="bg-white">
@@ -190,8 +195,10 @@ export default function IndustryDetailView({ slug }: { slug: string }) {
               <RevealItem key={service.slug} className="h-full">
                 <a
                   href={`#/services/${service.slug}`}
-                  className="group flex h-full flex-col rounded-xl border border-[#E2E8F0] bg-white p-5 outline-none transition-all duration-300 hover:-translate-y-1 hover:border-[#009FE3]/50 focus-visible:ring-2 focus-visible:ring-[#009FE3]"
+                  className="group flex h-full flex-col overflow-hidden rounded-xl border border-[#E2E8F0] bg-white outline-none transition-all duration-300 hover:-translate-y-1 hover:border-[#009FE3]/50 focus-visible:ring-2 focus-visible:ring-[#009FE3]"
                 >
+                  <ImageView src={industryImage(industry.slug)} alt="" aspect="16/9" imgClassName="transition-transform duration-500 group-hover:scale-105" />
+                  <div className="flex flex-1 flex-col p-5">
                   <span className="flex size-10 items-center justify-center rounded-lg bg-[#063B8F]/10 text-[#063B8F]">
                     <Icon name={service.icon} className="size-5" />
                   </span>
@@ -205,6 +212,7 @@ export default function IndustryDetailView({ slug }: { slug: string }) {
                     View service
                     <ArrowRight className="size-3.5 transition-transform group-hover:translate-x-1" aria-hidden="true" />
                   </span>
+                  </div>
                 </a>
               </RevealItem>
             ))}

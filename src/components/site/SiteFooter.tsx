@@ -100,7 +100,7 @@ export default function SiteFooter() {
             <p className="mt-5 max-w-sm text-sm leading-relaxed">
               Enterprise-grade websites, platforms and automation for ambitious
               businesses — engineered by a US-registered team delivering
-              worldwide. Preview before payment. Source code on completion.
+              worldwide. Scope, review and handover are agreed for each project.
             </p>
             <div className="mt-6 flex flex-col gap-3 text-sm">
               <a
@@ -120,7 +120,7 @@ export default function SiteFooter() {
                 className="inline-flex min-h-11 items-center gap-2.5 text-left outline-none transition-colors hover:text-white focus-visible:ring-2 focus-visible:ring-[#009FE3] rounded-sm"
               >
                 <MessageCircle className="size-4 shrink-0 text-[#18B83A]" aria-hidden="true" />
-                Live support — 24/7 chat
+                Contact us via chat
               </button>
               <address className="inline-flex items-start gap-2.5 not-italic">
                 <MapPin className="mt-0.5 size-4 shrink-0 text-[#009FE3]" aria-hidden="true" />
