@@ -47,7 +47,7 @@ describe('TECH360 communication integration safeguards', () => {
   })
 
   it('marks the first accepted intake welcome as awaiting the client response', () => {
-    assert.match(read('src/lib/journey.ts'), /nextPendingAction: 'Share your business type and main project goal'[\\s\\S]*?nextPendingActor: 'CLIENT'/)
+    assert.match(read('src/lib/journey.ts'), /nextPendingAction: 'Share your business type and main project goal'[\s\S]*?nextPendingActor: 'CLIENT'/)
   })
 
   it('records WhatsApp state only after a successful provider result', () => {
