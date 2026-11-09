@@ -301,6 +301,8 @@ export async function intakeLead(input: {
           channels: welcomeChannels,
           agentCode: 'COM-010',
           workflowId: log.id,
+          nextPendingAction: 'Share your business type and main project goal',
+          nextPendingActor: 'CLIENT',
         })
         welcomeResult = {
           status: welcome.status,
