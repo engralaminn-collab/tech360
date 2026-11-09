@@ -90,8 +90,8 @@ export async function POST(req: NextRequest) {
     let aiAvailable = false
     let aiDetail = 'AI assistant status checking…'
     try {
-      const { getZaiProviderStatus } = await import('@/lib/ai-provider')
-      const status = getZaiProviderStatus()
+      const { getAgentRuntimeStatus } = await import('@/lib/agent-runtime-status')
+      const status = getAgentRuntimeStatus()
       aiAvailable = status.configured
       aiDetail = status.detail
     } catch {
