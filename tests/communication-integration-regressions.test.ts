@@ -10,6 +10,7 @@ const opsActions = read('src/lib/ops-actions.ts')
 const sms = read('src/app/api/webhooks/sms/route.ts')
 const email = read('src/app/api/webhooks/email/route.ts')
 const whatsapp = read('src/app/api/webhooks/whatsapp/route.ts')
+const pipeline = read('src/lib/pipeline/send.ts')
 
 describe('TECH360 communication integration safeguards', () => {
   it('suppresses AI generation when takeover is active or state cannot be read', () => {
@@ -36,6 +37,17 @@ describe('TECH360 communication integration safeguards', () => {
     const accepted = email.indexOf('} else {', failed)
     const record = email.indexOf('await recordOutbound(clientRow.id', accepted)
     assert.ok(failed >= 0 && accepted > failed && record > accepted)
+  })
+
+  it('starts pipeline follow-up state only after an accepted provider delivery', () => {
+    const accepted = pipeline.indexOf('const acceptedDelivery = deliveries.find((delivery) => delivery.ok)')
+    const record = pipeline.indexOf('await recordOutbound(', accepted)
+    assert.ok(accepted >= 0 && record > accepted)
+    assert.match(pipeline.slice(accepted, record), /acceptedDelivery/)
+  })
+
+  it('marks the first accepted intake welcome as awaiting the client response', () => {
+    assert.match(read('src/lib/journey.ts'), /nextPendingAction: 'Share your business type and main project goal'[\\s\\S]*?nextPendingActor: 'CLIENT'/)
   })
 
   it('records WhatsApp state only after a successful provider result', () => {
