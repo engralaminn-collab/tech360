@@ -1,4 +1,5 @@
 import { PUBLIC_CONTACT } from "@/lib/site-contact";
+import { CLIENT_PROTECTION_ADDITIONAL_DOCS, CLIENT_PROTECTION_OVERRIDES } from "./client-protection";
 
 /**
  * Tech360 public website content.
@@ -1501,7 +1502,7 @@ export interface LegalDoc {
   sections: LegalSection[];
 }
 
-export const LEGAL_DOCS: LegalDoc[] = [
+const BASE_LEGAL_DOCS: LegalDoc[] = [
   {
     slug: "terms",
     title: "Terms & Conditions",
@@ -1953,6 +1954,11 @@ export const LEGAL_DOCS: LegalDoc[] = [
     ]
   },
 ];
+
+/** Canonical public policies: reviewed overrides plus the additional protection pages. */
+export const LEGAL_DOCS: LegalDoc[] = BASE_LEGAL_DOCS
+  .map((doc) => CLIENT_PROTECTION_OVERRIDES[doc.slug] ?? doc)
+  .concat(CLIENT_PROTECTION_ADDITIONAL_DOCS);
 
 /* ------------------------------------------------------------------ */
 /* Stats (source/catalogue counts only; live operation is not asserted) */
