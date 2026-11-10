@@ -7,6 +7,49 @@ import type { LegalDoc } from "./site";
  * agreed payment after written preview approval, followed by delivery/handover.
  */
 export const CLIENT_PROTECTION_OVERRIDES: Record<string, LegalDoc> = {
+  terms: {
+    slug: "terms",
+    title: "Terms & Conditions",
+    summary: "The general terms governing use of the TECH360 website and the commercial, delivery, ownership, and support framework for client engagements.",
+    updated: "November 2026",
+    sections: [
+      { heading: "1. Contracting entity and acceptance", body: [
+        "This website is operated by TECH360 LLC, identified on this website with Missouri filing number LC014737249 and the published business address. These Terms govern website use and provide the general framework for services. A project contract is formed only when both parties approve a written Final Scope of Work or services agreement.",
+        "The signed SOW and any signed variation govern the specific project. These Terms and the linked Refund & Cancellation, Delivery, Payment, Client Approval, Source Code Handover, Ownership, Pricing Transparency, Independence, and Warranty & Support policies apply together. A signed project agreement prevails only to the extent it expressly identifies a different term and is accepted by both parties. Mandatory applicable law prevails over any conflicting contract wording."
+      ]},
+      { heading: "2. Scope, preview, and payment", body: [
+        "The standard engagement sequence is written SOW → HTML preview → written client approval → full agreed project payment → verified payment → production development → testing → delivery and source-code handover. No standard project payment is requested before the client approves the SOW and HTML preview.",
+        "Any alternative milestone schedule, paid third-party commitment, or recurring service must be itemised in the SOW and accepted in writing before commitment. The client is not bound by an unapproved scope change or undisclosed charge."
+      ]},
+      { heading: "3. Client responsibilities", body: [
+        "The client will provide accurate project information, lawful content and materials, required approvals, and timely feedback. The client confirms that it owns or is authorised to provide the data, trademarks, content, and third-party materials supplied for the project.",
+        "Client delays, missing materials, access restrictions, provider approval delays, or approved scope changes may affect the delivery schedule. TECH360 will communicate material schedule impacts in writing."
+      ]},
+      { heading: "4. Intellectual property and independence", body: [
+        "After all amounts due under the SOW have cleared, project-specific custom deliverables transfer to the client to the extent stated in the SOW and legally transferable. TECH360 retains its pre-existing reusable tools and grants the client the licence described in the Ownership Policy for components embedded in the delivered system.",
+        "Third-party and open-source components remain subject to their own licences. The client may engage another developer to maintain and modify the delivered system, subject to those licences and any dependencies disclosed in the SOW."
+      ]},
+      { heading: "5. Fees, refunds, and support", body: [
+        "Project fees, currency, third-party costs, recurring charges, and optional support are disclosed in the approved SOW or a separate written agreement. No undisclosed mandatory TECH360 subscription is required after handover.",
+        "Cancellations, refunds, warranty corrections, and paid support are governed by their respective linked policies and the signed SOW. Nothing in these Terms prohibits a lawful dispute or excludes a right that cannot legally be excluded."
+      ]},
+      { heading: "6. Portfolio, confidentiality, and data", body: [
+        "Illustrative scenarios, conceptual demonstrations, and representative workflows are not represented as completed client engagements. TECH360 publishes a named client project, logo, testimonial, or attributable result only with separate prior written permission.",
+        "Client information is handled under the Privacy Policy and the data-retention and deletion commitments in the Source Code Handover Policy. Certain minimum contract, accounting, security, and dispute records may be retained where required or reasonably necessary by law."
+      ]},
+      { heading: "7. Website content and third-party services", body: [
+        "Website descriptions are informational and do not guarantee that a particular integration, provider, or third-party service is available. The SOW identifies the services and dependencies actually included. Third-party services remain subject to their own terms, availability, pricing, and licences.",
+        "The client is responsible for maintaining client-controlled accounts and services after handover unless a separate written agreement assigns those tasks to TECH360."
+      ]},
+      { heading: "8. Liability and governing law", body: [
+        "Liability, remedies, dispute procedures, and governing law are determined by the signed engagement agreement and applicable law. Any limitation applies only to the extent legally enforceable and does not exclude liability that cannot lawfully be excluded, including liability for fraud or other non-excludable conduct.",
+        "The applicable governing law and dispute forum for a particular engagement must be stated in its signed SOW or services agreement. This website policy does not invent a governing-law selection for every international client."
+      ]},
+      { heading: "9. Contact and policy updates", body: [
+        "For questions about these Terms or a project, contact info@bdtech360.com and include your Client ID and project reference. Policy updates apply prospectively as stated on the relevant policy page and do not silently rewrite an already signed SOW."
+      ]}
+    ]
+  },
   refund: {
     slug: "refund",
     title: "Refund & Cancellation Policy",
